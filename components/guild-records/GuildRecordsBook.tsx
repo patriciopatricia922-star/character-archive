@@ -21,6 +21,7 @@ import type {
   GuildMemberRecord,
   GuildRecord,
 } from "../../data/guildRecords";
+import { useAmbientMusic } from "../gallery/AmbientMusic";
 import "./GuildLedger.css";
 
 type BookState = "closed" | "opening" | "open" | "closing";
@@ -847,6 +848,7 @@ function SpreadSurface({
 }
 
 export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
+  const { setBookMuffled } = useAmbientMusic();
   const spreads = useMemo(() => buildGuildLedgerSpreads(guilds), [guilds]);
   const spreadIndices = useMemo(
     () => new Map(spreads.map((spread, index) => [spread.id, index])),
@@ -943,6 +945,7 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
 
   useEffect(
     () => () => {
+      setBookMuffled(false);
       if (bookTransitionTimeout.current !== null) {
         window.clearTimeout(bookTransitionTimeout.current);
       }
@@ -953,11 +956,12 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
         window.cancelAnimationFrame(pageTurnFrame.current);
       }
     },
-    [],
+    [setBookMuffled],
   );
 
   const beginOpening = () => {
     if (bookState !== "closed") return;
+    setBookMuffled(true);
     setBookState("opening");
 
     if (
@@ -976,6 +980,7 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
 
   const beginClosing = () => {
     if (bookState !== "open" || turnRef.current) return;
+    setBookMuffled(false);
     setBookState("closing");
 
     if (

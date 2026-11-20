@@ -1,10 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
-type Props = {
-  active: boolean;
-  startRequested: boolean;
+type AmbientMusicControls = {
+  setBookMuffled: (muffled: boolean) => void;
+  setGalleryActive: (active: boolean) => void;
+  requestStart: () => void;
 };
 
 type MusicPreference = {
@@ -12,8 +23,17 @@ type MusicPreference = {
   currentTime: number;
 };
 
+type AudioGraph = {
+  context: AudioContext;
+  filter: BiquadFilterNode;
+};
+
 const MUSIC_PREFERENCE_KEY = "character-archive-ambient-music";
 const MUSIC_SOURCE = "/music/Skye%20Cuillin.mp3";
+const CLEAR_FILTER_FREQUENCY = 20000;
+const MUFFLED_FILTER_FREQUENCY = 2200;
+const FILTER_TRANSITION_SECONDS = 0.9;
+const ambientMusicContext = createContext<AmbientMusicControls | null>(null);
 
 function isMusicPreference(value: unknown): value is MusicPreference {
   return (
@@ -29,13 +49,32 @@ function isMusicPreference(value: unknown): value is MusicPreference {
   );
 }
 
-export default function AmbientMusic({ active, startRequested }: Props) {
+export function useAmbientMusic() {
+  const controls = useContext(ambientMusicContext);
+  if (!controls) {
+    throw new Error("useAmbientMusic must be used within AmbientMusicProvider.");
+  }
+  return controls;
+}
+
+export default function AmbientMusicProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const pathname = usePathname();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audioGraphRef = useRef<AudioGraph | null>(null);
+  const bookMuffledRef = useRef(false);
   const playbackIntent = useRef<boolean | null>(null);
   const resumeTime = useRef(0);
   const lastSavedTime = useRef(0);
   const [preferenceLoaded, setPreferenceLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [bookMuffled, setBookMuffled] = useState(false);
+  const [galleryActive, setGalleryActive] = useState(false);
+  const active = galleryActive && pathname === "/";
+  const [startRequested, setStartRequested] = useState(false);
 
   const savePreference = useCallback(() => {
     if (playbackIntent.current === null) return;
@@ -72,14 +111,50 @@ export default function AmbientMusic({ active, startRequested }: Props) {
     audio.currentTime = Math.min(resumeTime.current, Math.max(0, audio.duration - 0.1));
   }, []);
 
+  const ensureAudioGraph = useCallback(() => {
+    if (audioGraphRef.current) return audioGraphRef.current;
+
+    const audio = audioRef.current;
+    if (!audio || typeof window.AudioContext !== "function") return null;
+
+    try {
+      const context = new window.AudioContext();
+      const filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.Q.setValueAtTime(0.707, context.currentTime);
+      filter.frequency.setValueAtTime(
+        bookMuffledRef.current
+          ? MUFFLED_FILTER_FREQUENCY
+          : Math.min(CLEAR_FILTER_FREQUENCY, context.sampleRate / 2),
+        context.currentTime,
+      );
+      const source = context.createMediaElementSource(audio);
+      source.connect(filter);
+      filter.connect(context.destination);
+
+      const graph = { context, filter };
+      audioGraphRef.current = graph;
+      return graph;
+    } catch (error) {
+      console.warn("Could not initialize the background music filter.", error);
+      return null;
+    }
+  }, []);
+
   const startPlayback = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    restorePosition();
+    const graph = ensureAudioGraph();
+    if (audio.paused) restorePosition();
 
     try {
-      await audio.play();
+      const resumeContext =
+        graph && graph.context.state !== "running"
+          ? graph.context.resume()
+          : Promise.resolve();
+      const startAudio = audio.paused ? audio.play() : Promise.resolve();
+      await Promise.all([resumeContext, startAudio]);
     } catch (error) {
       setIsPlaying(false);
       if (error instanceof DOMException && error.name === "NotAllowedError") {
@@ -87,7 +162,22 @@ export default function AmbientMusic({ active, startRequested }: Props) {
       }
       console.warn("Could not start the background music.", error);
     }
-  }, [restorePosition]);
+  }, [ensureAudioGraph, restorePosition]);
+
+  const requestStart = useCallback(() => {
+    setGalleryActive(true);
+    setStartRequested(true);
+    if (preferenceLoaded) {
+      playbackIntent.current = true;
+      savePreference();
+      void startPlayback();
+    }
+  }, [preferenceLoaded, savePreference, startPlayback]);
+
+  const controls = useMemo(
+    () => ({ setBookMuffled, setGalleryActive, requestStart }),
+    [requestStart],
+  );
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -95,7 +185,7 @@ export default function AmbientMusic({ active, startRequested }: Props) {
 
       try {
         const saved = window.sessionStorage.getItem(MUSIC_PREFERENCE_KEY);
-        if (saved) {
+        if (saved && playbackIntent.current === null) {
           const parsed: unknown = JSON.parse(saved);
           if (!isMusicPreference(parsed)) {
             throw new Error("Expected a valid background music preference.");
@@ -125,6 +215,22 @@ export default function AmbientMusic({ active, startRequested }: Props) {
   }, [active, preferenceLoaded, savePreference, startPlayback, startRequested]);
 
   useEffect(() => {
+    bookMuffledRef.current = bookMuffled;
+    const graph = audioGraphRef.current;
+    if (!graph) return;
+
+    const frequency = graph.filter.frequency;
+    const now = graph.context.currentTime;
+    const target = bookMuffled
+      ? MUFFLED_FILTER_FREQUENCY
+      : Math.min(CLEAR_FILTER_FREQUENCY, graph.context.sampleRate / 2);
+
+    frequency.cancelScheduledValues(now);
+    frequency.setValueAtTime(frequency.value, now);
+    frequency.linearRampToValueAtTime(target, now + FILTER_TRANSITION_SECONDS);
+  }, [bookMuffled]);
+
+  useEffect(() => {
     const audio = audioRef.current;
     const onPageHide = () => savePreference();
     window.addEventListener("pagehide", onPageHide);
@@ -132,6 +238,9 @@ export default function AmbientMusic({ active, startRequested }: Props) {
       window.removeEventListener("pagehide", onPageHide);
       savePreference();
       audio?.pause();
+      if (audioGraphRef.current?.context.state !== "closed") {
+        void audioGraphRef.current?.context.close();
+      }
     };
   }, [savePreference]);
 
@@ -160,7 +269,7 @@ export default function AmbientMusic({ active, startRequested }: Props) {
     void startPlayback();
   };
 
-  return (
+  const player = (
     <>
       <audio
         ref={audioRef}
@@ -195,5 +304,12 @@ export default function AmbientMusic({ active, startRequested }: Props) {
         </button>
       )}
     </>
+  );
+
+  return (
+    <ambientMusicContext.Provider value={controls}>
+      {children}
+      {player}
+    </ambientMusicContext.Provider>
   );
 }

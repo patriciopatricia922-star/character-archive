@@ -7,7 +7,7 @@ import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
 import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
 import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
-import AmbientMusic from "./AmbientMusic";
+import { useAmbientMusic } from "./AmbientMusic";
 import PortraitArt from "./PortraitArt";
 import Dossier from "./Dossier";
 import "./gallery.css";
@@ -95,7 +95,6 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const [settings, setSettings] = useState<ExhibitionSettings>(DEFAULT_SETTINGS);
   const [preferenceLoaded, setPreferenceLoaded] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
-  const [musicStartRequested, setMusicStartRequested] = useState(false);
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [flickering, setFlickering] = useState(false);
@@ -114,6 +113,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const showVisitorNotice = preferenceLoaded && !hasEntered;
   const entered = preferenceLoaded && hasEntered;
   const experienceBlocked = !preferenceLoaded || !hasEntered;
+  const { requestStart, setGalleryActive } = useAmbientMusic();
 
   const step = useCallback(
     (d: number) => setIndex((i) => Math.max(0, Math.min(n - 1, i + d))),
@@ -149,10 +149,14 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     }
     saveSettings({ ...settings, spotlightFlickering: enabled });
     setHasEntered(true);
-    setMusicStartRequested(true);
+    requestStart();
     setFlickering(false);
     window.requestAnimationFrame(() => settingsButtonRef.current?.focus());
   };
+
+  useEffect(() => {
+    setGalleryActive(entered);
+  }, [entered, setGalleryActive]);
 
   useEffect(() => {
     const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -666,7 +670,6 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
           </div>
         </div>
       )}
-      <AmbientMusic active={entered} startRequested={musicStartRequested} />
     </>
   );
 }
