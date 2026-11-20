@@ -129,6 +129,10 @@
 
 .pf-settings-button{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 16px);right:max(16px,env(safe-area-inset-right,0px));display:grid;width:42px;height:42px;padding:0;place-items:center;border:0;border-radius:0;background:transparent;cursor:pointer}
 .pf-settings-icon{display:block;width:22px;height:22px;filter:brightness(0) invert(1);opacity:.82;transition:opacity 240ms ease,transform 240ms ease}
+.pf-music-toggle{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 16px);right:calc(max(16px,env(safe-area-inset-right,0px)) + 52px);display:grid;width:42px;height:42px;padding:0;place-items:center;border:0;background:transparent;color:rgba(255,253,208,.78);cursor:pointer;transition:color 180ms ease,opacity 180ms ease}
+.pf-music-toggle svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.pf-music-toggle:hover{color:var(--mimosa)}
+.pf-music-toggle:focus-visible{outline:2px solid var(--yellow-orange);outline-offset:3px}
 @media(hover:hover) and (pointer:fine){.pf-settings-button:hover .pf-settings-icon{opacity:1;transform:rotate(12deg)}}
 .pf-settings-button:focus-visible{outline:2px solid var(--yellow-orange);outline-offset:4px}
 
@@ -210,6 +214,7 @@
   .pf-document-index button[aria-current="page"]::after{content:"";position:absolute;right:8px;bottom:4px;left:8px;height:1px;background:var(--burnt-orange)}
   .pf-back{top:calc(env(safe-area-inset-top,0px) + 10px)}
   .pf-settings-button{top:calc(env(safe-area-inset-top,0px) + 10px);right:10px}
+  .pf-music-toggle{top:calc(env(safe-area-inset-top,0px) + 10px);right:62px}
   .pf-guild-ledger{right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:clamp(76px,23vw,94px)}
   .pf-settings-panel{top:calc(env(safe-area-inset-top,0px) + 60px);right:10px;width:min(352px,calc(100vw - 20px));padding:19px}
   .pf-effects-scrim{padding:18px}

@@ -7,6 +7,7 @@ import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
 import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
 import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
+import AmbientMusic from "./AmbientMusic";
 import PortraitArt from "./PortraitArt";
 import Dossier from "./Dossier";
 import "./gallery.css";
@@ -94,6 +95,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const [settings, setSettings] = useState<ExhibitionSettings>(DEFAULT_SETTINGS);
   const [preferenceLoaded, setPreferenceLoaded] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
+  const [musicStartRequested, setMusicStartRequested] = useState(false);
   const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [flickering, setFlickering] = useState(false);
@@ -147,6 +149,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     }
     saveSettings({ ...settings, spotlightFlickering: enabled });
     setHasEntered(true);
+    setMusicStartRequested(true);
     setFlickering(false);
     window.requestAnimationFrame(() => settingsButtonRef.current?.focus());
   };
@@ -663,6 +666,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
           </div>
         </div>
       )}
+      <AmbientMusic active={entered} startRequested={musicStartRequested} />
     </>
   );
 }
