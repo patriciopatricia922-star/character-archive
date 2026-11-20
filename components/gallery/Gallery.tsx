@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent, WheelEvent } from "react";
+import Image from "next/image";
+import cogwheel from "../../assets/cogwheel.svg";
+import photoFrame from "../../assets/photo-frame.png";
 import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
+import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
 import PortraitArt from "./PortraitArt";
 import Dossier from "./Dossier";
 import "./gallery.css";
@@ -15,8 +19,39 @@ type Props = {
 
 const WALL_CELLS = 30;
 const EFFECTS_PREFERENCE_KEY = "character-archive-visual-effects";
+const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const FLICKER_INTERVAL = 15 * 60 * 1000;
 const FLICKER_DURATION = 10 * 1000;
+
+type ExhibitionSettings = {
+  spotlightFlickering: boolean;
+  floatingDustParticles: boolean;
+  reducedMotion: boolean;
+};
+
+const DEFAULT_SETTINGS: ExhibitionSettings = {
+  spotlightFlickering: false,
+  floatingDustParticles: true,
+  reducedMotion: false,
+};
+
+const SETTINGS_OPTIONS = [
+  {
+    key: "spotlightFlickering",
+    label: "Spotlight flickering",
+    description: "Allow an occasional, brief flutter in the gallery spotlight.",
+  },
+  {
+    key: "floatingDustParticles",
+    label: "Floating dust particles",
+    description: "Show the slow-moving particles in the exhibition light.",
+  },
+  {
+    key: "reducedMotion",
+    label: "Reduced motion",
+    description: "Limit movement and animated transitions. Your system preference is always respected.",
+  },
+] as const;
 
 const DUST_PARTICLES = [
   { x: 7, y: 13, size: 1.1, duration: 32, delay: -18, drift: 11, alpha: 0.13 },
@@ -56,8 +91,10 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const [index, setIndex] = useState(Math.floor(n / 2));
   const [hover, setHover] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
-  const [effectPreference, setEffectPreference] = useState<boolean | null>(null);
+  const [settings, setSettings] = useState<ExhibitionSettings>(DEFAULT_SETTINGS);
   const [preferenceLoaded, setPreferenceLoaded] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
+  const [systemReducedMotion, setSystemReducedMotion] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [flickering, setFlickering] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
@@ -67,12 +104,14 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const zoomedRef = useRef(false);
   const settleCamera = useRef<() => void>(() => {});
   const dialogRef = useRef<HTMLDivElement>(null);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
   const enableEffectsRef = useRef<HTMLButtonElement>(null);
   const disableFlickerRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const showEffectsDialog = preferenceLoaded && (effectPreference === null || settingsOpen);
-  const entered = preferenceLoaded && effectPreference !== null;
-  const experienceBlocked = !preferenceLoaded || showEffectsDialog;
+  const effectiveReducedMotion = systemReducedMotion || settings.reducedMotion;
+  const showVisitorNotice = preferenceLoaded && !hasEntered;
+  const entered = preferenceLoaded && hasEntered;
+  const experienceBlocked = !preferenceLoaded || !hasEntered;
 
   const step = useCallback(
     (d: number) => setIndex((i) => Math.max(0, Math.min(n - 1, i + d))),
@@ -84,33 +123,93 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     onSelect?.(portraits[index].id);
   };
 
+  const saveSettings = (nextSettings: ExhibitionSettings) => {
+    setSettings(nextSettings);
+    try {
+      window.localStorage.setItem(SETTINGS_PREFERENCE_KEY, JSON.stringify(nextSettings));
+    } catch (error) {
+      console.warn("Could not save the exhibition settings.", error);
+    }
+  };
+
+  const updateSetting = (key: keyof ExhibitionSettings, value: boolean) => {
+    saveSettings({ ...settings, [key]: value });
+    if ((key === "spotlightFlickering" && !value) || (key === "reducedMotion" && value)) {
+      setFlickering(false);
+    }
+  };
+
   const chooseEffects = (enabled: boolean) => {
     try {
       window.sessionStorage.setItem(EFFECTS_PREFERENCE_KEY, enabled ? "enabled" : "disabled");
     } catch (error) {
-      console.warn("Could not save the visual-effects preference for this session.", error);
+      console.warn("Could not save the visitor notice choice for this session.", error);
     }
-    setEffectPreference(enabled);
+    saveSettings({ ...settings, spotlightFlickering: enabled });
+    setHasEntered(true);
     setFlickering(false);
-    setSettingsOpen(false);
     window.requestAnimationFrame(() => settingsButtonRef.current?.focus());
   };
 
   useEffect(() => {
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateSystemMotion = () => {
+      setSystemReducedMotion(motionPreference.matches);
+      if (motionPreference.matches) setFlickering(false);
+    };
+    updateSystemMotion();
+    motionPreference.addEventListener("change", updateSystemMotion);
+
     const frame = window.requestAnimationFrame(() => {
-      let preference: string | null;
+      let sessionPreference: string | null = null;
+      let storedSettings: string | null = null;
       try {
-        preference = window.sessionStorage.getItem(EFFECTS_PREFERENCE_KEY);
+        sessionPreference = window.sessionStorage.getItem(EFFECTS_PREFERENCE_KEY);
       } catch (error) {
-        console.warn("Could not read the visual-effects preference for this session.", error);
-        setPreferenceLoaded(true);
-        return;
+        console.warn("Could not read the visitor notice choice for this session.", error);
       }
-      if (preference === "enabled") setEffectPreference(true);
-      else if (preference === "disabled") setEffectPreference(false);
+      try {
+        storedSettings = window.localStorage.getItem(SETTINGS_PREFERENCE_KEY);
+      } catch (error) {
+        console.warn("Could not read the exhibition settings.", error);
+      }
+
+      let initialSettings = DEFAULT_SETTINGS;
+      if (storedSettings) {
+        try {
+          const parsed: unknown = JSON.parse(storedSettings);
+          if (!parsed || typeof parsed !== "object") throw new Error("Expected an object.");
+          const saved = parsed as Record<string, unknown>;
+          initialSettings = {
+            spotlightFlickering:
+              typeof saved.spotlightFlickering === "boolean"
+                ? saved.spotlightFlickering
+                : DEFAULT_SETTINGS.spotlightFlickering,
+            floatingDustParticles:
+              typeof saved.floatingDustParticles === "boolean"
+                ? saved.floatingDustParticles
+                : DEFAULT_SETTINGS.floatingDustParticles,
+            reducedMotion:
+              typeof saved.reducedMotion === "boolean" ? saved.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
+          };
+        } catch (error) {
+          console.warn("Could not parse the saved exhibition settings.", error);
+        }
+      } else if (sessionPreference === "enabled" || sessionPreference === "disabled") {
+        initialSettings = {
+          ...initialSettings,
+          spotlightFlickering: sessionPreference === "enabled",
+        };
+      }
+
+      setSettings(initialSettings);
+      setHasEntered(sessionPreference === "enabled" || sessionPreference === "disabled");
       setPreferenceLoaded(true);
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      motionPreference.removeEventListener("change", updateSystemMotion);
+    };
   }, []);
 
   useEffect(() => {
@@ -120,8 +219,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   }, []);
 
   useEffect(() => {
-    if (!preferenceLoaded || effectPreference !== true || showEffectsDialog || zoomed) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!preferenceLoaded || !hasEntered || !settings.spotlightFlickering || effectiveReducedMotion || zoomed) return;
 
     let phase: "steady" | "flicker" = "steady";
     let remaining = FLICKER_INTERVAL;
@@ -164,13 +262,13 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
       document.removeEventListener("visibilitychange", onVisibilityChange);
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [effectPreference, preferenceLoaded, showEffectsDialog, zoomed]);
+  }, [effectiveReducedMotion, hasEntered, preferenceLoaded, settings.spotlightFlickering, zoomed]);
 
   useEffect(() => {
-    if (!showEffectsDialog) return;
+    if (!showVisitorNotice) return;
     const dialog = dialogRef.current;
     if (!dialog) return;
-    (effectPreference ? enableEffectsRef.current : disableFlickerRef.current)?.focus();
+    (settings.spotlightFlickering ? enableEffectsRef.current : disableFlickerRef.current)?.focus();
 
     const trapFocus = (event: KeyboardEvent) => {
       event.stopPropagation();
@@ -194,7 +292,11 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
 
     dialog.addEventListener("keydown", trapFocus);
     return () => dialog.removeEventListener("keydown", trapFocus);
-  }, [effectPreference, showEffectsDialog]);
+  }, [settings.spotlightFlickering, showVisitorNotice]);
+
+  useEffect(() => {
+    if (settingsOpen) settingsPanelRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+  }, [settingsOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -213,6 +315,10 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     zoomedRef.current = zoomed;
     if (!zoomed) settleCamera.current();
   }, [zoomed]);
+
+  useEffect(() => {
+    if (effectiveReducedMotion) settleCamera.current();
+  }, [effectiveReducedMotion]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -243,7 +349,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
       if (!c.raf) c.raf = requestAnimationFrame(tick);
     };
     const onMove = (e: WindowEventMap["pointermove"]) => {
-      if (e.pointerType !== "mouse" || !zoomedRef.current || !fine.matches || calm.matches) return;
+      if (e.pointerType !== "mouse" || !zoomedRef.current || !fine.matches || calm.matches || stage.dataset.reducedMotion === "true") return;
       c.tx = (e.clientX / window.innerWidth - 0.5) * 2;
       c.ty = (e.clientY / window.innerHeight - 0.5) * 2;
       run();
@@ -251,6 +357,14 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     settleCamera.current = () => {
       c.tx = 0;
       c.ty = 0;
+      if (stage.dataset.reducedMotion === "true") {
+        cancelAnimationFrame(c.raf);
+        c.raf = 0;
+        c.x = 0;
+        c.y = 0;
+        paint(true);
+        return;
+      }
       run();
     };
     window.addEventListener("pointermove", onMove, { passive: true });
@@ -301,9 +415,11 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         className="pf-stage"
         data-zoomed={zoomed}
         data-entered={entered}
-        data-flickering={flickering}
+        data-flickering={flickering && !effectiveReducedMotion}
+        data-reduced-motion={effectiveReducedMotion}
+        data-dust={settings.floatingDustParticles}
         data-page-hidden={!pageVisible}
-        data-effects-dialog={showEffectsDialog}
+        data-effects-dialog={showVisitorNotice}
         aria-hidden={experienceBlocked}
         inert={experienceBlocked}
         aria-roledescription="carousel"
@@ -383,12 +499,32 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
               >
                 <PortraitArt data={p} seed={i} />
                 <span className="pf-shade" />
+                <Image
+                  className="pf-photo-frame"
+                  src={photoFrame}
+                  alt=""
+                  aria-hidden="true"
+                  width={1351}
+                  height={1600}
+                  unoptimized
+                  draggable={false}
+                />
               </button>
             );
           })}
         </div>
 
         <Dossier key={portraits[index].id} open={zoomed} portraitId={portraits[index].id} />
+
+        {!zoomed && (
+          <div
+            className="pf-guild-ledger"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ClosedLedgerBook href="/guild-records" />
+          </div>
+        )}
 
         <div className="pf-dots">
           {portraits.map((p, i) => (
@@ -417,25 +553,78 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
           Return
         </button>
 
-        {entered && !zoomed && (
+      </section>
+
+      {entered && !zoomed && (
+        <>
           <button
             ref={settingsButtonRef}
             type="button"
-            className="pf-effects-settings"
+            className="pf-settings-button"
             aria-haspopup="dialog"
-            aria-label={`Change visual-effects preference (currently ${effectPreference ? "enabled" : "disabled"})`}
-            onClick={(event) => {
-              event.stopPropagation();
-              setFlickering(false);
-              setSettingsOpen(true);
-            }}
+            aria-expanded={settingsOpen}
+            aria-controls="pf-settings-panel"
+            aria-label="Exhibition Settings"
+            title="Exhibition Settings"
+            data-reduced-motion={effectiveReducedMotion}
+            onClick={() => setSettingsOpen((open) => !open)}
           >
-            Effects · {effectPreference ? "On" : "Off"}
+            <Image
+              className="pf-settings-icon"
+              src={cogwheel}
+              alt=""
+              aria-hidden="true"
+              width={22}
+              height={22}
+              unoptimized
+            />
           </button>
-        )}
-      </section>
+          {settingsOpen && (
+            <div
+              ref={settingsPanelRef}
+              id="pf-settings-panel"
+              className="pf-settings-panel"
+              role="dialog"
+              aria-modal="false"
+              aria-labelledby="pf-settings-title"
+              data-reduced-motion={effectiveReducedMotion}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.stopPropagation();
+                  setSettingsOpen(false);
+                  settingsButtonRef.current?.focus();
+                }
+              }}
+            >
+              <p className="pf-settings-kicker">ARCHIVE / VISITOR SETTINGS</p>
+              <h2 id="pf-settings-title">Exhibition settings</h2>
+              <div className="pf-settings-options">
+                {SETTINGS_OPTIONS.map((option) => (
+                  <label className="pf-setting" key={option.key}>
+                    <span className="pf-setting-copy">
+                      <span className="pf-setting-label">{option.label}</span>
+                      <span id={`pf-setting-${option.key}-description`} className="pf-setting-description">
+                        {option.description}
+                      </span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      aria-label={option.label}
+                      aria-describedby={`pf-setting-${option.key}-description`}
+                      checked={settings[option.key]}
+                      onChange={(event) => updateSetting(option.key, event.currentTarget.checked)}
+                    />
+                    <span className="pf-setting-switch" aria-hidden="true" />
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
-      {showEffectsDialog && (
+      {showVisitorNotice && (
         <div className="pf-effects-scrim">
           <div
             ref={dialogRef}
@@ -443,24 +632,34 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             role="dialog"
             aria-modal="true"
             aria-labelledby="pf-effects-title"
-            aria-describedby="pf-effects-description"
+            aria-describedby="pf-effects-intro pf-effects-description"
             tabIndex={-1}
           >
-            <p className="pf-effects-eyebrow">Before entering the archive</p>
-            <h2 id="pf-effects-title">VISUAL EFFECTS WARNING</h2>
-            <p id="pf-effects-description">
-              This experience contains occasional spotlight flickering and animated visual effects. These effects may cause
-              discomfort or trigger symptoms in individuals with photosensitivity or photosensitive epilepsy.
+            <p className="pf-effects-eyebrow">
+              <span>VISITOR NOTICE</span>
+              <span>ARCHIVE / 01</span>
             </p>
-            <p className="pf-effects-question">Would you like to continue with these visual effects enabled?</p>
+            <h2 id="pf-effects-title">Before you enter</h2>
+            <p id="pf-effects-intro" className="pf-effects-intro">
+              A brief note regarding the visual experience ahead.
+            </p>
+            <div className="pf-effects-warning">
+              <h3>Visual effects notice</h3>
+              <p id="pf-effects-description">
+                This exhibition contains occasional spotlight flickering and subtle animated visual effects. These may
+                cause discomfort or trigger symptoms in individuals with photosensitivity or photosensitive epilepsy.
+              </p>
+            </div>
+            <p className="pf-effects-question">How would you like to experience the archive?</p>
             <div className="pf-effects-actions">
-              <button ref={enableEffectsRef} type="button" className="pf-effects-yes" onClick={() => chooseEffects(true)}>
-                YES — Continue with effects
+              <button ref={enableEffectsRef} type="button" onClick={() => chooseEffects(true)}>
+                Enter with visual effects
               </button>
-              <button ref={disableFlickerRef} type="button" className="pf-effects-no" onClick={() => chooseEffects(false)}>
-                NO — Continue without flickering
+              <button ref={disableFlickerRef} type="button" onClick={() => chooseEffects(false)}>
+                Enter without flickering
               </button>
             </div>
+            <p className="pf-effects-foot">Both choices enter the archive. Preferences can be changed at any time.</p>
           </div>
         </div>
       )}

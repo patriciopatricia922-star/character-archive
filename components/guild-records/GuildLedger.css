@@ -1,0 +1,1543 @@
+/*
+ * Typography tokens, scoped to the Guild Records book only.
+ * - Sizes are rem-based clamp() ranges (max <= ~2.5x min) so they respect user/OS text scaling.
+ * - One serif for reading + display, one sans for small-caps labels, one script for handwritten marginalia.
+ */
+.guildLedgerVolume {
+  --gl-font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --gl-font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gl-font-script: "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive;
+
+  --gl-text-display: clamp(1.5rem, 0.25rem + 2.5vw, 2.4rem);
+  --gl-text-title: clamp(0.9375rem, 0.75rem + 0.45vw, 1.125rem);
+  --gl-text-body: clamp(0.875rem, 0.72rem + 0.38vw, 1.0625rem);
+  --gl-text-body-sm: clamp(0.8125rem, 0.7rem + 0.3vw, 0.9375rem);
+  --gl-text-note: clamp(0.9375rem, 0.8rem + 0.4vw, 1.0625rem);
+  --gl-text-caption: 0.75rem;
+  --gl-text-label: clamp(0.625rem, 0.55rem + 0.2vw, 0.6875rem);
+  --gl-text-micro: 0.625rem;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+}
+
+.guildLedgerVolume {
+  /* Height reserved at the foot of every page for the navigation bar. */
+  --gl-nav-band: 48px;
+  --gl-open-book-scale: 0.5;
+  --gl-book-open-duration: 820ms;
+  --gl-book-close-duration: 720ms;
+  --gl-book-open-ease: cubic-bezier(0.22, 0.68, 0.18, 1);
+  --gl-book-close-ease: cubic-bezier(0.4, 0, 0.16, 1);
+  position: relative;
+  width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+  max-height: calc(100svh - 240px);
+  aspect-ratio: 1.65;
+  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  transform-style: preserve-3d;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
+  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
+}
+
+.guildLedgerVolume[data-book-state="opening"],
+.guildLedgerVolume[data-book-state="open"] {
+  --gl-open-book-scale: 1;
+  transform: rotateX(1deg);
+}
+
+.guildLedgerVolume[data-book-state="closing"] {
+  --gl-open-book-scale: 0.5;
+  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  transition-duration: var(--gl-book-close-duration);
+  transition-timing-function: var(--gl-book-close-ease);
+}
+
+.guildLedgerBackCover,
+.guildLedgerPageBlock {
+  position: absolute;
+  top: -8px;
+  bottom: -13px;
+  left: -1%;
+  width: 102%;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.guildLedgerBackCover {
+  z-index: 0;
+  border: 1px solid rgba(38, 19, 9, 0.84);
+  border-radius: 5px 10px 11px 6px;
+  background-image:
+    linear-gradient(135deg, rgba(28, 12, 5, 0.38), rgba(15, 8, 5, 0.5)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-size: cover;
+  box-shadow:
+    0 24px 42px rgba(0, 0, 0, 0.48),
+    inset 0 0 0 1px rgba(215, 164, 100, 0.22);
+  transform: translateZ(-18px) scaleX(var(--gl-open-book-scale));
+  transform-origin: right center;
+  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
+}
+
+.guildLedgerPageBlock {
+  z-index: 1;
+  top: 5px;
+  bottom: -12px;
+  border: 1px solid rgba(38, 19, 9, 0.78);
+  border-radius: 4px 8px 9px 5px;
+  background:
+    linear-gradient(180deg, rgba(24, 11, 5, 0.16), rgba(13, 7, 4, 0.3)),
+    url("../../assets/old-book-leather.jpg") center / cover;
+  box-shadow:
+    0 3px 0 rgba(26, 13, 7, 0.92),
+    0 6px 0 rgba(65, 36, 20, 0.9),
+    0 10px 14px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(215, 164, 100, 0.18);
+  transform: translateZ(-10px) scaleX(var(--gl-open-book-scale));
+  transform-origin: right center;
+  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
+}
+
+.guildLedgerPageBlock::before {
+  position: absolute;
+  inset: 3px 3px -6px;
+  border: 1px solid rgba(38, 19, 9, 0.68);
+  border-radius: 3px 7px 8px 4px;
+  background:
+    linear-gradient(180deg, rgba(29, 14, 7, 0.22), rgba(14, 7, 4, 0.42)),
+    url("../../assets/old-book-leather.jpg") center / cover;
+  box-shadow:
+    0 4px 0 rgba(30, 15, 8, 0.92),
+    0 8px 0 rgba(56, 31, 17, 0.88);
+  content: "";
+  transform: translateZ(-1px);
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerBackCover,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerBackCover,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerBackCover,
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerPageBlock,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerPageBlock,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerPageBlock {
+  visibility: visible;
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerBackCover,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerPageBlock {
+  transition-duration: var(--gl-book-close-duration);
+  transition-timing-function: var(--gl-book-close-ease);
+}
+
+.guildLedgerInterior {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  visibility: hidden;
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerInterior,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerInterior {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerInterior {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.guildLedgerSpread {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+}
+
+.guildLedgerSpreadDesktop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) clamp(14px, 1.65vw, 22px) minmax(0, 1fr);
+  overflow: visible;
+  transform-style: preserve-3d;
+}
+
+.guildLedgerSpreadMobile,
+.guildLedgerTurnMobile {
+  display: none;
+}
+
+.guildLedgerPaper {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background-color: transparent;
+  background-image: url("../../assets/weathered-paper.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(92, 63, 35, 0.16),
+    inset 0 0 28px rgba(84, 55, 30, 0.1);
+  color: #34271e;
+}
+
+.guildLedgerPaper--left {
+  grid-column: 1;
+  border-radius: 5px 0 0 5px;
+  filter: drop-shadow(-3px 4px 5px rgba(0, 0, 0, 0.22));
+}
+
+.guildLedgerPaper--right {
+  grid-column: 3;
+  border-radius: 0 5px 5px 0;
+  filter: drop-shadow(3px 4px 5px rgba(0, 0, 0, 0.24));
+}
+
+.guildLedgerGutter {
+  position: relative;
+  z-index: 5;
+  grid-column: 2;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(47, 28, 14, 0.4),
+      rgba(93, 61, 32, 0.2) 24%,
+      rgba(255, 244, 208, 0.25) 50%,
+      rgba(80, 52, 29, 0.23) 74%,
+      rgba(37, 22, 12, 0.42)
+    );
+  box-shadow:
+    inset 5px 0 8px rgba(62, 40, 23, 0.16),
+    inset -5px 0 8px rgba(62, 40, 23, 0.16);
+  pointer-events: none;
+}
+
+.guildLedgerGutter::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(57, 35, 20, 0.35);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.guildLedgerPageContent {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  height: calc(100% - var(--gl-nav-band));
+  min-height: 0;
+  flex-direction: column;
+  overflow: auto;
+  padding:
+    clamp(24px, 3.3vw, 48px)
+    clamp(24px, 3.8vw, 54px)
+    calc(clamp(66px, 7vw, 82px) - var(--gl-nav-band));
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 12px), transparent);
+  scrollbar-color: rgba(86, 59, 35, 0.45) transparent;
+  scrollbar-width: thin;
+}
+
+.guildLedgerPageContent::-webkit-scrollbar {
+  width: 5px;
+}
+
+.guildLedgerPageContent::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background: rgba(86, 59, 35, 0.4);
+}
+
+.guildLedgerPageHeader {
+  display: flex;
+  min-height: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(78, 53, 32, 0.22);
+  padding-bottom: 8px;
+}
+
+.guildLedgerFolio,
+.guildLedgerIndexReturn,
+.guildLedgerSectionLabel,
+.guildLedgerPageColophon,
+.guildLedgerEntryMeta,
+.guildLedgerMemberEntryNumber,
+.guildLedgerMemberEntryReference,
+.guildLedgerFields dt,
+.guildLedgerAmendmentDate {
+  color: #71553c;
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-label);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.guildLedgerFolio {
+  margin: 0;
+}
+
+.guildLedgerIndexReturn {
+  margin: -4px 0 0;
+  border: 0;
+  border-bottom: 1px solid rgba(104, 67, 41, 0.35);
+  background: transparent;
+  color: #8d4426;
+  cursor: pointer;
+  font-size: var(--gl-text-label);
+  padding: 3px 0 2px;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.guildLedgerSectionLabel {
+  margin: clamp(20px, 2.4vw, 34px) 0 7px;
+  color: #8e4728;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.guildLedgerPaper h2 {
+  margin: 0;
+  color: #38281d;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.guildLedgerPaper h2:focus {
+  outline: none;
+}
+
+.guildLedgerRule {
+  display: block;
+  width: min(100%, 220px);
+  height: 1px;
+  margin: clamp(14px, 1.8vw, 24px) 0;
+  background: linear-gradient(90deg, rgba(124, 76, 43, 0.72), transparent);
+}
+
+.guildLedgerLead,
+.guildLedgerDescription,
+.guildLedgerEmptyNote,
+.guildLedgerContextLine {
+  margin: 0;
+  color: #49382b;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.guildLedgerLead {
+  max-width: 31ch;
+}
+
+.guildLedgerEmptyNote {
+  margin-top: clamp(22px, 3vw, 42px);
+  color: #70543b;
+  font-size: var(--gl-text-body-sm);
+  font-style: italic;
+}
+
+.guildLedgerPageColophon {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: auto 0 0;
+  border-top: 1px solid rgba(78, 53, 32, 0.22);
+  padding-top: 10px;
+  font-size: var(--gl-text-micro);
+  letter-spacing: 0.12em;
+}
+
+.guildLedgerPageColophon span {
+  text-align: right;
+}
+
+/* fixed-size items must scroll, never shrink, when a page is crowded */
+.guildLedgerPageHeader,
+.guildLedgerRule,
+.guildLedgerGuildMark,
+.guildLedgerGuildMonogram,
+.guildLedgerPortrait,
+.guildLedgerPageColophon {
+  flex-shrink: 0;
+}
+
+.guildLedgerLead,
+.guildLedgerDescription {
+  margin-bottom: clamp(12px, 1.6vw, 18px);
+}
+
+.guildLedgerGuildList,
+.guildLedgerMemberList,
+.guildLedgerAnnotationList,
+.guildLedgerAttachmentList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guildLedgerGuildList {
+  gap: 2px;
+}
+
+.guildLedgerGuildEntry,
+.guildLedgerMemberEntry {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: clamp(10px, 1.3vw, 18px);
+  border: 0;
+  border-bottom: 1px solid rgba(87, 60, 38, 0.27);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 10px 3px;
+  text-align: left;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.guildLedgerGuildEntry {
+  min-height: 88px;
+}
+
+.guildLedgerEmblem {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  place-items: center;
+  color: #84512e;
+  font-family: var(--gl-font-serif);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  overflow: visible;
+}
+
+.guildLedgerEmblem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.guildLedgerEntryText {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.guildLedgerEntryName,
+.guildLedgerMemberEntryName {
+  color: #3e2d20;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-title);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.guildLedgerEntryMeta {
+  font-size: var(--gl-text-micro);
+  letter-spacing: 0.12em;
+}
+
+.guildLedgerEntryFolio {
+  color: #9e572f;
+  font-family: var(--gl-font-serif);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.guildLedgerMemberList {
+  max-height: 100%;
+  overflow: auto;
+  padding-right: 5px;
+}
+
+.guildLedgerMemberEntry {
+  min-height: 44px;
+  gap: 12px;
+}
+
+.guildLedgerMemberEntryNumber {
+  flex: 0 0 24px;
+  font-size: var(--gl-text-micro);
+}
+
+.guildLedgerMemberEntryName {
+  flex: 1;
+  font-size: var(--gl-text-title);
+}
+
+.guildLedgerMemberEntryReference {
+  max-width: 38%;
+  overflow: hidden;
+  font-size: var(--gl-text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guildLedgerGuildMark {
+  --gl-mark-size: clamp(4rem, 2.6rem + 3.4vw, 6rem);
+  display: flex;
+  width: 100%;
+  height: var(--gl-mark-size);
+  align-items: center;
+  /* gap and margins leave room for emblems that are scaled up via emblemScale */
+  gap: calc(var(--gl-mark-size) * 0.2 + 0.75rem);
+  margin:
+    calc(var(--gl-mark-size) * 0.2 + 6px) 0
+    calc(var(--gl-mark-size) * 0.2 + 2px);
+}
+
+.guildLedgerGuildMark img {
+  display: block;
+  flex: 0 0 var(--gl-mark-size);
+  width: var(--gl-mark-size);
+  height: var(--gl-mark-size);
+  object-fit: contain;
+}
+
+/* hairline ties the emblem to the ruled lines of the page */
+.guildLedgerGuildMark::after,
+.guildLedgerGuildMonogram::after {
+  min-width: 0;
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(78, 53, 32, 0.3), rgba(78, 53, 32, 0));
+  content: "";
+}
+
+.guildLedgerGuildMonogram {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: clamp(16px, 2vw, 28px) 0 clamp(14px, 1.8vw, 24px);
+  color: rgba(115, 76, 44, 0.78);
+  font-family: var(--gl-font-serif);
+  font-size: clamp(28px, 3.2vw, 45px);
+  letter-spacing: 0.09em;
+  line-height: 1;
+}
+
+.guildLedgerGuildMark + h2,
+.guildLedgerGuildMonogram + h2 {
+  max-width: 17ch;
+}
+
+.guildLedgerSubheading,
+.guildLedgerSupplementSection h3 {
+  margin: 22px 0 8px;
+  color: #74472e;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-title);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.guildLedgerFields {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(9px, 1.2vh, 15px);
+  margin: 4px 0 0;
+}
+
+.guildLedgerFields > div {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.8fr) minmax(0, 1.5fr);
+  gap: 10px;
+  border-bottom: 1px solid rgba(88, 59, 36, 0.23);
+  padding-bottom: 7px;
+}
+
+.guildLedgerFields dt {
+  margin: 0;
+  font-size: var(--gl-text-label);
+  letter-spacing: 0.12em;
+}
+
+.guildLedgerFields dd {
+  margin: 0;
+  color: #3e2f23;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body-sm);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.guildLedgerDescription {
+  margin-top: 16px;
+  font-size: var(--gl-text-body);
+}
+
+.guildLedgerHandnote,
+.guildLedgerReferenceNote {
+  margin: 18px 0 0 auto;
+  max-width: 85%;
+  color: #76503b;
+  font-family: var(--gl-font-script);
+  font-size: var(--gl-text-note);
+  font-synthesis: none;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  transform: rotate(-1deg);
+}
+
+.guildLedgerPortraitHeading {
+  font-size: clamp(1.25rem, 0.3rem + 2vw, 1.875rem) !important;
+}
+
+.guildLedgerPortrait {
+  position: relative;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  margin: clamp(22px, 3vw, 42px) auto 0;
+}
+
+.guildLedgerPortraitImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.guildLedgerPortraitImage[data-fit="cover"] {
+  object-fit: cover;
+}
+
+.guildLedgerPortraitMissing,
+.guildLedgerPortraitCaption {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  left: 0;
+  color: #80634a;
+  font-family: var(--gl-font-script);
+  font-size: var(--gl-text-note);
+  font-synthesis: none;
+  text-align: center;
+}
+
+.guildLedgerPortraitAffiliation {
+  margin: 15px 0 0;
+  color: #70513a;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body-sm);
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.guildLedgerReferenceNote {
+  margin-top: 10px;
+  font-size: var(--gl-text-note);
+  text-align: center;
+}
+
+.guildLedgerContextLine {
+  margin-bottom: 16px;
+  color: #755438;
+  font-size: var(--gl-text-body-sm);
+  font-style: italic;
+}
+
+.guildLedgerAmendmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guildLedgerAmendmentList li {
+  border-bottom: 1px solid rgba(88, 59, 36, 0.27);
+  padding: 0 0 12px;
+}
+
+.guildLedgerAmendmentList p {
+  margin: 0;
+  color: #433126;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.guildLedgerAmendmentList .guildLedgerAmendmentDate {
+  margin-bottom: 5px;
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-label);
+}
+
+.guildLedgerAmendmentList .guildLedgerAmendmentInitials {
+  margin-top: 6px;
+  color: #84543b;
+  font-family: var(--gl-font-script);
+  font-size: var(--gl-text-note);
+  font-synthesis: none;
+  text-align: right;
+}
+
+.guildLedgerSupplementSection + .guildLedgerSupplementSection {
+  margin-top: 22px;
+}
+
+.guildLedgerSupplementSection h3 {
+  margin-top: 0;
+  border-bottom: 1px solid rgba(88, 59, 36, 0.24);
+  padding-bottom: 7px;
+}
+
+.guildLedgerAnnotationList {
+  gap: 12px;
+}
+
+.guildLedgerAnnotationList li {
+  position: relative;
+  padding-left: 16px;
+  color: #4b3729;
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body-sm);
+  font-style: italic;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.guildLedgerAnnotationList li::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #a0522b;
+  content: "—";
+}
+
+.guildLedgerAttachmentList {
+  gap: 10px;
+}
+
+.guildLedgerAttachment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 1px solid rgba(125, 75, 43, 0.5);
+  color: #483427;
+  padding: 2px 0 2px 12px;
+  text-decoration: none;
+}
+
+a.guildLedgerAttachment:hover {
+  color: #8c4729;
+}
+
+.guildLedgerAttachmentTitle {
+  font-family: var(--gl-font-serif);
+  font-size: var(--gl-text-body-sm);
+  line-height: 1.35;
+}
+
+.guildLedgerAttachmentDescription {
+  color: #73583f;
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-caption);
+  line-height: 1.45;
+}
+
+.guildLedgerTurnLeaf {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  transition: transform 820ms cubic-bezier(0.43, 0.04, 0.16, 1);
+}
+
+.guildLedgerTurnLeaf--forward {
+  left: 50%;
+  transform: rotateY(0deg);
+  transform-origin: left center;
+}
+
+.guildLedgerTurnLeaf--backward {
+  left: 0;
+  transform: rotateY(0deg);
+  transform-origin: right center;
+}
+
+.guildLedgerTurnLeaf--forward[data-animating="true"] {
+  transform: rotateY(-180deg);
+}
+
+.guildLedgerTurnLeaf--backward[data-animating="true"] {
+  transform: rotateY(180deg);
+}
+
+.guildLedgerTurnFace {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.guildLedgerTurnFace--back {
+  transform: rotateY(180deg);
+}
+
+.guildLedgerTurnDesktop {
+  position: absolute;
+  inset: 0;
+}
+
+.guildLedgerTurnDesktop .guildLedgerPaper {
+  width: 100%;
+  height: 100%;
+}
+
+.guildLedgerRibbon {
+  position: absolute;
+  z-index: 10;
+  top: -1%;
+  bottom: 24%;
+  left: 50%;
+  width: clamp(7px, 0.72vw, 10px);
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(58, 8, 11, 0.48),
+      rgba(151, 34, 39, 0.22) 42%,
+      rgba(65, 8, 12, 0.47)
+    ),
+    url("../../assets/red-fabric.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    1px 2px 4px rgba(27, 11, 8, 0.62),
+    inset 1px 0 rgba(244, 173, 135, 0.34);
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 50% 100%, 0 95%);
+  pointer-events: none;
+  transform: translateX(-50%) translateZ(6px) rotate(0.35deg);
+}
+
+.guildLedgerControls {
+  position: absolute;
+  z-index: 14;
+  right: 0;
+  bottom: 9px;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(8px, 1.3vw, 18px);
+  padding: 0 clamp(14px, 3.6vw, 50px);
+}
+
+.guildLedgerTurnButton,
+.guildLedgerCloseButton {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: #5b3e29;
+  cursor: pointer;
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-label);
+  line-height: 1;
+  padding: 4px 0;
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.guildLedgerTurnButton:first-child {
+  justify-self: start;
+}
+
+.guildLedgerTurnButton:nth-of-type(2) {
+  justify-self: end;
+}
+
+.guildLedgerTurnButton > span[aria-hidden="true"] {
+  color: #9a512c;
+  font-family: var(--gl-font-serif);
+  font-size: 1.5rem;
+}
+
+.guildLedgerControlLabel {
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.guildLedgerPageStatus {
+  color: #795a3f;
+  font-family: var(--gl-font-sans);
+  font-size: var(--gl-text-label);
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.guildLedgerPageStatus:focus {
+  outline: none;
+}
+
+.guildLedgerCloseButton {
+  justify-self: end;
+  border-bottom: 1px solid rgba(103, 63, 37, 0.42);
+  color: #854326;
+  font-size: var(--gl-text-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.guildLedgerTurnButton:disabled,
+.guildLedgerCloseButton:disabled {
+  color: rgba(74, 54, 38, 0.42);
+  cursor: default;
+}
+
+.guildLedgerCover {
+  position: absolute;
+  z-index: 12;
+  top: 0;
+  left: 50%;
+  display: flex;
+  width: 50%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(38, 19, 9, 0.92);
+  border-radius: 7px 11px 10px 7px;
+  background-image:
+    linear-gradient(135deg, rgba(36, 16, 7, 0.3), rgba(24, 10, 4, 0.4)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    inset 7px 0 11px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(225, 178, 111, 0.5),
+    inset 0 0 0 8px rgba(17, 10, 7, 0.24),
+    inset 0 0 0 9px rgba(186, 139, 82, 0.2),
+    0 20px 34px rgba(0, 0, 0, 0.46);
+  color: #c3a16e;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transform: translateZ(8px);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition:
+    transform var(--gl-book-open-duration) var(--gl-book-open-ease),
+    box-shadow 280ms ease;
+  backface-visibility: hidden;
+}
+
+.guildLedgerCover::before {
+  position: absolute;
+  inset: 7%;
+  border: 1px solid rgba(195, 161, 110, 0.37);
+  border-radius: 5px 8px 8px 5px;
+  box-shadow: inset 0 0 0 4px rgba(20, 9, 4, 0.18);
+  content: "";
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.guildLedgerCoverBack {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border: 1px solid rgba(38, 19, 9, 0.92);
+  border-radius: 7px 11px 10px 7px;
+  background:
+    linear-gradient(135deg, rgba(36, 16, 7, 0.46), rgba(24, 10, 4, 0.56)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-size: cover;
+  box-shadow:
+    inset 0 0 0 9px rgba(17, 10, 7, 0.32),
+    inset 0 0 0 10px rgba(186, 139, 82, 0.18);
+  transform: rotateY(180deg) translateZ(1px);
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.guildLedgerCoverBorder {
+  position: absolute;
+  z-index: 2;
+  inset: 10%;
+  border: 1px solid rgba(195, 161, 110, 0.3);
+  border-radius: 4px 7px 7px 4px;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.guildLedgerCoverInsignia {
+  display: grid;
+  z-index: 2;
+  width: clamp(36px, 5vw, 64px);
+  height: clamp(36px, 5vw, 64px);
+  place-items: center;
+  margin-bottom: clamp(14px, 2.2vw, 30px);
+  border: 1px solid rgba(195, 161, 110, 0.5);
+  color: rgba(210, 170, 112, 0.9);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(18px, 2.2vw, 27px);
+  transform: rotate(45deg);
+  backface-visibility: hidden;
+}
+
+.guildLedgerCoverInsignia span {
+  transform: rotate(-45deg);
+}
+
+.guildLedgerCoverKicker,
+.guildLedgerCoverSubtitle {
+  position: relative;
+  z-index: 2;
+  color: rgba(211, 176, 128, 0.84);
+  font-family: var(--gl-font-sans);
+  font-size: clamp(0.625rem, 0.55rem + 0.25vw, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  backface-visibility: hidden;
+}
+
+.guildLedgerCoverTitle {
+  position: relative;
+  z-index: 2;
+  margin: 9px 12px;
+  color: #e2c99e;
+  font-family: var(--gl-font-serif);
+  font-size: clamp(1.375rem, 0.4rem + 2.8vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-wrap: balance;
+  backface-visibility: hidden;
+}
+
+.guildLedgerCoverRule {
+  position: relative;
+  z-index: 2;
+  width: 38%;
+  height: 1px;
+  margin: 3px 0 9px;
+  background: rgba(195, 161, 110, 0.56);
+  backface-visibility: hidden;
+}
+
+.guildLedgerSpine {
+  position: absolute;
+  z-index: 11;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: clamp(10px, 1.1vw, 16px);
+  border-right: 1px solid rgba(22, 10, 5, 0.72);
+  border-left: 1px solid rgba(197, 149, 91, 0.22);
+  background-image:
+    linear-gradient(90deg, rgba(17, 8, 4, 0.6), rgba(67, 31, 14, 0.25)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.32);
+  pointer-events: none;
+  transform: translateX(-50%) translateZ(10px);
+  transition: opacity 420ms ease;
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerCover,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerCover {
+  transform: translateZ(4px) rotateY(-135deg);
+  will-change: transform;
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerCover,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerCover {
+  pointer-events: none;
+}
+
+.guildLedgerVolume[data-book-state="open"] .guildLedgerCover {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerCover {
+  transform: translateZ(8px);
+  transition-duration: var(--gl-book-close-duration);
+  transition-timing-function: var(--gl-book-close-ease);
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerSpine,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerSpine,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerSpine {
+  opacity: 0;
+}
+
+.guildLedgerCover:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.guildLedgerVolume:focus-within .guildLedgerCover:focus-visible,
+.guildLedgerVolume :focus-visible {
+  outline: 2px solid #d99054;
+  outline-offset: 3px;
+}
+
+.guildLedgerCover:focus-visible {
+  outline-offset: 5px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .guildLedgerVolume[data-book-state="closed"]:hover {
+    transform: translateX(-25%) translateY(-4px) rotateX(1.5deg)
+      rotateZ(-0.35deg);
+  }
+
+  .guildLedgerCover:hover {
+    box-shadow:
+      inset 7px 0 11px rgba(0, 0, 0, 0.42),
+      inset 0 0 0 1px rgba(186, 139, 82, 0.6),
+      inset 0 0 0 8px rgba(17, 10, 7, 0.3),
+      inset 0 0 0 9px rgba(186, 139, 82, 0.24),
+      0 24px 38px rgba(0, 0, 0, 0.52);
+  }
+
+  .guildLedgerIndexReturn:hover,
+  .guildLedgerCloseButton:not(:disabled):hover,
+  .guildLedgerTurnButton:not(:disabled):hover {
+    color: #a14f29;
+  }
+
+  .guildLedgerGuildEntry:hover,
+  .guildLedgerMemberEntry:hover {
+    background: rgba(117, 78, 48, 0.08);
+    color: #8c4729;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  .guildLedgerVolume {
+    width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+    max-height: calc(100svh - 240px);
+  }
+
+  .guildLedgerPageContent {
+    padding-right: clamp(20px, 3vw, 32px);
+    padding-left: clamp(20px, 3vw, 32px);
+  }
+
+  .guildLedgerFields {
+    gap: clamp(8px, 1.3vh, 13px);
+  }
+
+  .guildLedgerFields > div {
+    grid-template-columns: minmax(75px, 0.85fr) minmax(0, 1.3fr);
+    gap: 7px;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 641px) {
+  .guildLedgerVolume {
+    --gl-nav-band: 42px;
+    width: min(92vw, 700px, calc((100svh - 180px) * 1.65));
+    max-height: none;
+  }
+
+  .guildLedgerPageContent {
+    padding: 18px 22px calc(56px - var(--gl-nav-band));
+  }
+
+  .guildLedgerGuildMark {
+    --gl-mark-size: 3.5rem;
+  }
+
+  .guildLedgerSectionLabel {
+    margin-top: 14px;
+  }
+
+  .guildLedgerPaper h2 {
+    font-size: clamp(1.3125rem, 0.5rem + 2vw, 1.75rem);
+  }
+
+  .guildLedgerRule {
+    margin: 11px 0;
+  }
+
+  .guildLedgerFields {
+    gap: 8px;
+  }
+
+  .guildLedgerControls {
+    bottom: 4px;
+  }
+}
+
+@media (max-width: 640px) {
+  .guildLedgerVolume {
+    /* nav row plus the Close ledger link stacked above it */
+    --gl-nav-band: 68px;
+    width: min(88vw, 440px);
+    max-height: none;
+    aspect-ratio: 0.72;
+    transform: rotateX(1deg);
+  }
+
+  .guildLedgerVolume[data-book-state="opening"],
+  .guildLedgerVolume[data-book-state="open"],
+  .guildLedgerVolume[data-book-state="closing"] {
+    --gl-open-book-scale: 1;
+    transform: rotateX(1deg);
+  }
+
+  .guildLedgerVolume {
+    --gl-open-book-scale: 1;
+  }
+
+  .guildLedgerBackCover,
+  .guildLedgerPageBlock {
+    left: 0;
+    width: 100%;
+    border-radius: 6px 10px 11px 6px;
+  }
+
+  .guildLedgerSpreadDesktop {
+    display: none;
+  }
+
+  .guildLedgerSpreadMobile {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .guildLedgerPaper--mobile {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px 10px 11px 6px;
+    filter: drop-shadow(3px 4px 5px rgba(0, 0, 0, 0.24));
+  }
+
+  .guildLedgerPageContent--mobile {
+    padding:
+      clamp(24px, 6vw, 34px)
+      clamp(22px, 7vw, 32px)
+      calc(88px - var(--gl-nav-band));
+  }
+
+  .guildLedgerPageHeader {
+    min-height: 16px;
+    padding-bottom: 7px;
+  }
+
+  .guildLedgerFolio,
+  .guildLedgerIndexReturn,
+  .guildLedgerSectionLabel {
+    font-size: var(--gl-text-label);
+  }
+
+  .guildLedgerSectionLabel {
+    margin-top: 19px;
+  }
+
+  .guildLedgerPaper h2 {
+    font-size: clamp(1.5625rem, 0.9rem + 2.8vw, 2rem);
+  }
+
+  .guildLedgerRule {
+    margin: 13px 0;
+  }
+
+  .guildLedgerLead,
+  .guildLedgerDescription,
+  .guildLedgerEmptyNote {
+    font-size: var(--gl-text-body);
+    line-height: 1.6;
+  }
+
+  .guildLedgerGuildEntry {
+    min-height: 68px;
+  }
+
+  .guildLedgerEmblem {
+    width: 54px;
+    height: 54px;
+    flex-basis: 54px;
+  }
+
+  .guildLedgerMemberEntry {
+    min-height: 42px;
+  }
+
+  .guildLedgerEntryName,
+  .guildLedgerMemberEntryName {
+    font-size: var(--gl-text-title);
+  }
+
+  .guildLedgerFields {
+    gap: 10px;
+  }
+
+  .guildLedgerFields > div {
+    grid-template-columns: minmax(92px, 0.82fr) minmax(0, 1.3fr);
+    gap: 8px;
+  }
+
+  .guildLedgerFields dt {
+    font-size: var(--gl-text-label);
+  }
+
+  .guildLedgerFields dd {
+    font-size: var(--gl-text-body-sm);
+  }
+
+  .guildLedgerPortrait--mobile {
+    width: min(68%, 210px);
+    margin: 15px auto 16px;
+  }
+
+  .guildLedgerPortraitMissing {
+    font-size: var(--gl-text-note);
+  }
+
+  .guildLedgerGuildMark {
+    --gl-mark-size: clamp(3.75rem, 3rem + 3vw, 4.75rem);
+  }
+
+  .guildLedgerGuildMonogram {
+    margin: 16px 0;
+    font-size: 32px;
+  }
+
+  .guildLedgerSubheading,
+  .guildLedgerSupplementSection h3 {
+    margin-top: 16px;
+    font-size: var(--gl-text-title);
+  }
+
+  .guildLedgerContextLine {
+    font-size: var(--gl-text-body-sm);
+  }
+
+  .guildLedgerTurnLeaf {
+    left: 0;
+    width: 100%;
+    transform-origin: left center;
+  }
+
+  .guildLedgerTurnLeaf--backward {
+    left: 0;
+    transform-origin: left center;
+  }
+
+  .guildLedgerTurnLeaf--forward[data-animating="true"],
+  .guildLedgerTurnLeaf--backward[data-animating="true"] {
+    transform: rotateY(-180deg);
+  }
+
+  .guildLedgerTurnDesktop {
+    display: none;
+  }
+
+  .guildLedgerTurnMobile {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .guildLedgerTurnMobile .guildLedgerPaper {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px 10px 11px 6px;
+  }
+
+  .guildLedgerRibbon {
+    top: 0;
+    bottom: 22%;
+    left: 0;
+    width: 7px;
+    transform: translateX(0) translateZ(6px);
+  }
+
+  .guildLedgerControls {
+    right: 8px;
+    bottom: 7px;
+    left: 8px;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 6px;
+    padding: 0 10px;
+  }
+
+  .guildLedgerTurnButton,
+  .guildLedgerCloseButton {
+    min-height: 30px;
+    gap: 4px;
+  }
+
+  .guildLedgerControlLabel {
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+  }
+
+  .guildLedgerPageStatus {
+    font-size: 0.625rem;
+  }
+
+  .guildLedgerCloseButton {
+    position: absolute;
+    right: 10px;
+    bottom: calc(100% + 1px);
+    min-height: 24px;
+    font-size: var(--gl-text-label);
+  }
+
+  .guildLedgerCover {
+    left: 0;
+    width: 100%;
+    border-radius: 6px 10px 11px 6px;
+    transform-origin: left center;
+  }
+
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerCover,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerCover {
+    transform: translateZ(4px) rotateY(-135deg);
+  }
+
+  .guildLedgerVolume[data-book-state="closing"] .guildLedgerCover {
+    transform: translateZ(8px);
+  }
+
+  .guildLedgerSpine {
+    left: 0;
+    width: 10px;
+    transform: translateX(0) translateZ(10px);
+  }
+
+  .guildLedgerCoverInsignia {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 20px;
+    font-size: 19px;
+  }
+
+  .guildLedgerCoverKicker,
+  .guildLedgerCoverSubtitle {
+    font-size: 0.625rem;
+  }
+
+  .guildLedgerCoverTitle {
+    font-size: clamp(1.625rem, 1.1rem + 2.4vw, 2.125rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .guildLedgerControls {
+    right: 4px;
+    left: 4px;
+    gap: 3px;
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .guildLedgerControlLabel {
+    font-size: 0.4375rem;
+  }
+
+  .guildLedgerTurnButton > span[aria-hidden="true"] {
+    font-size: 1.25rem;
+  }
+
+  .guildLedgerPageContent--mobile {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guildLedgerVolume,
+  .guildLedgerBackCover,
+  .guildLedgerPageBlock,
+  .guildLedgerInterior,
+  .guildLedgerTurnLeaf,
+  .guildLedgerCover,
+  .guildLedgerSpine,
+  .guildLedgerIndexReturn,
+  .guildLedgerGuildEntry,
+  .guildLedgerMemberEntry,
+  .guildLedgerTurnButton,
+  .guildLedgerCloseButton {
+    transition: none;
+  }
+
+  .guildLedgerVolume[data-book-state="closed"]:hover {
+    transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  }
+}
+
+.guildLedgerVolume[data-reduced-motion="true"],
+.guildLedgerVolume[data-reduced-motion="true"] *,
+.guildLedgerVolume[data-reduced-motion="true"]::before {
+  scroll-behavior: auto;
+}
+
+.guildLedgerVolume[data-reduced-motion="true"] {
+  transition: none;
+}
+
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerBackCover,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerPageBlock,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerInterior,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerTurnLeaf,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerCover,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerSpine,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerIndexReturn,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerGuildEntry,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerMemberEntry,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerTurnButton,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerCloseButton {
+  transition: none;
+}

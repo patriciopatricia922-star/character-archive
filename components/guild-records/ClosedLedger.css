@@ -1,0 +1,1088 @@
+.guildRecordsPage {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(117, 75, 38, 0.2), transparent 43%),
+    linear-gradient(180deg, #0b0908 0%, #100d0b 54%, #100b08 100%);
+  color: #fffdd0;
+}
+
+.guildRecordsPage::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 52px,
+    rgba(218, 174, 111, 0.018) 53px,
+    transparent 55px
+  );
+  content: "";
+}
+
+.guildRecordsAtmosphere {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.guildRecordsDesk {
+  position: absolute;
+  top: 38%;
+  right: -8%;
+  bottom: -12%;
+  left: -8%;
+  border-top: 1px solid rgba(183, 132, 76, 0.22);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 90px,
+      rgba(11, 7, 5, 0.18) 91px,
+      transparent 93px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 250px,
+      rgba(11, 7, 5, 0.16) 251px,
+      transparent 253px
+    ),
+    linear-gradient(180deg, #302016 0%, #21150f 58%, #170f0b 100%);
+  box-shadow: inset 0 18px 35px rgba(0, 0, 0, 0.24), 0 -18px 42px rgba(0, 0, 0, 0.2);
+  transform: perspective(1000px) rotateX(1deg);
+  transform-origin: top;
+}
+
+.guildRecordsReturnLink {
+  position: absolute;
+  z-index: 3;
+  top: max(24px, env(safe-area-inset-top, 0px) + 16px);
+  left: max(24px, env(safe-area-inset-left, 0px) + 16px);
+  padding: 9px 0;
+  color: rgba(255, 253, 208, 0.72);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.guildRecordsReturnLink:hover {
+  color: #ffca4b;
+}
+
+.guildRecordsReturnLink:focus-visible {
+  outline: 2px solid #ffca4b;
+  outline-offset: 5px;
+}
+
+.guildRecordsExperience {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.guildRecordsBookStage {
+  position: absolute;
+  top: 7%;
+  right: 0;
+  bottom: 1%;
+  left: 0;
+  display: grid;
+  place-items: center;
+  perspective: 2200px;
+}
+
+.guildRecordsBook {
+  position: relative;
+  width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+  max-height: calc(100svh - 240px);
+  aspect-ratio: 1.65;
+  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  transform-style: preserve-3d;
+  transition: transform 900ms cubic-bezier(0.48, 0.02, 0.18, 1);
+}
+
+.guildRecordsBook::before {
+  position: absolute;
+  z-index: 0;
+  top: -8px;
+  bottom: -13px;
+  left: 50%;
+  width: 50%;
+  border: 1px solid rgba(38, 19, 9, 0.84);
+  border-radius: 2px 9px 10px 3px;
+  background-image:
+    linear-gradient(135deg, rgba(28, 12, 5, 0.38), rgba(15, 8, 5, 0.5)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 24px 42px rgba(0, 0, 0, 0.48), inset 0 0 0 1px rgba(215, 164, 100, 0.22);
+  content: "";
+  pointer-events: none;
+  transform: translateZ(-18px);
+  transition: left 760ms cubic-bezier(0.48, 0.02, 0.18, 1), width 760ms cubic-bezier(0.48, 0.02, 0.18, 1);
+}
+
+.guildRecordsBook[data-book-state="opening"],
+.guildRecordsBook[data-book-state="open"] {
+  transform: rotateX(1deg);
+}
+
+.guildRecordsBook[data-book-state="opening"]::before,
+.guildRecordsBook[data-book-state="open"]::before {
+  left: -1%;
+  width: 102%;
+}
+
+.guildRecordsBook[data-book-state="closing"] {
+  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+}
+
+.guildRecordsBook[data-book-state="closing"]::before {
+  left: 50%;
+  width: 50%;
+}
+
+.guildRecordsSpread {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(14px, 1.65vw, 22px) minmax(0, 1fr);
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  transition: opacity 280ms ease 180ms, visibility 0s linear 900ms;
+  visibility: hidden;
+}
+
+.guildRecordsBook[data-book-state="opening"] .guildRecordsSpread,
+.guildRecordsBook[data-book-state="open"] .guildRecordsSpread {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 420ms ease 120ms, visibility 0s;
+  visibility: visible;
+}
+
+.guildRecordsPaper {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  overflow: hidden;
+  background-color: transparent;
+  background-image: url("../../assets/weathered-paper.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: #34271e;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.24));
+}
+
+.guildRecordsLeftPage {
+  grid-column: 1;
+  border-radius: 5px 0 0 5px;
+  box-shadow: inset -18px 0 24px rgba(66, 43, 26, 0.18), inset 0 0 0 1px rgba(121, 82, 45, 0.14);
+}
+
+.guildRecordsRightPage {
+  grid-column: 3;
+  border-radius: 0 5px 5px 0;
+  box-shadow: inset 18px 0 24px rgba(66, 43, 26, 0.2), inset 0 0 0 1px rgba(121, 82, 45, 0.14);
+}
+
+.guildRecordsGutter {
+  position: relative;
+  z-index: 3;
+  grid-column: 2;
+  grid-row: 1;
+  background:
+    linear-gradient(90deg, rgba(32, 18, 11, 0.76), rgba(114, 67, 37, 0.62) 35%, rgba(35, 18, 10, 0.74)),
+    url("../../assets/old-book-leather.jpg") center / cover;
+  box-shadow: inset 3px 0 5px rgba(0, 0, 0, 0.34), inset -3px 0 5px rgba(0, 0, 0, 0.34);
+  transform: translateZ(1px);
+}
+
+.guildRecordsMobilePage {
+  display: none;
+}
+
+.guildRecordsPaperContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding: clamp(26px, 3.2vw, 48px) clamp(28px, 4vw, 58px) clamp(22px, 2.8vw, 40px);
+}
+
+.guildRecordsFolioRow {
+  display: flex;
+  min-height: 28px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.guildRecordsFolio {
+  margin: 0;
+  color: #70543b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(9px, 0.82vw, 11px);
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guildRecordsPaperContent h2 {
+  margin: 8px 0 0;
+  color: #34271e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 2.2vw, 33px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: 0.015em;
+  text-align: center;
+}
+
+.guildRecordsPaperRule {
+  display: block;
+  height: 1px;
+  flex: 0 0 auto;
+  margin-top: 16px;
+  background: linear-gradient(90deg, transparent, rgba(128, 69, 38, 0.66) 15%, rgba(128, 69, 38, 0.34) 85%, transparent);
+}
+
+.guildRecordsFields {
+  display: grid;
+  gap: clamp(13px, 2vh, 20px);
+  margin: clamp(22px, 3vh, 34px) 0 0;
+}
+
+.guildRecordsFields > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(90px, 1.15fr);
+  align-items: end;
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.guildRecordsFields dt {
+  color: #69513a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(10px, 0.9vw, 12px);
+  font-variant: small-caps;
+  letter-spacing: 0.09em;
+}
+
+.guildRecordsFields dd {
+  min-height: 24px;
+  margin: 0;
+  border-bottom: 1px solid rgba(67, 48, 34, 0.38);
+  color: rgba(67, 48, 34, 0.76);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  text-align: left;
+}
+
+.guildRecordsHandnote {
+  align-self: flex-end;
+  max-width: 88%;
+  margin: 18px 0 12px;
+  color: #8c4a31;
+  font-family: "Segoe Print", "Bradley Hand", cursive;
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.45;
+  text-align: right;
+  transform: rotate(-1.2deg);
+}
+
+.guildRecordsPaperFooter {
+  margin: auto 0 0;
+  padding-top: 11px;
+  border-top: 1px solid rgba(67, 48, 34, 0.24);
+  color: #70543b;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.guildRecordsAmendments {
+  margin-top: clamp(20px, 2.8vh, 32px);
+}
+
+.guildRecordsAmendments h3,
+.guildRecordsAttachments h3,
+.guildRecordsMobileNotes h3 {
+  margin: 0 0 10px;
+  color: #70452f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.guildRecordsAmendmentLine {
+  display: grid;
+  grid-template-columns: clamp(50px, 5vw, 66px) minmax(0, 1fr);
+  align-items: end;
+  gap: 14px;
+  min-height: clamp(38px, 5.2vh, 52px);
+  border-bottom: 1px solid rgba(67, 48, 34, 0.24);
+  color: #62503e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.guildRecordsAttachments {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(67, 48, 34, 0.22);
+}
+
+.guildRecordsAttachments p,
+.guildRecordsMobileNotes p {
+  margin: 0;
+  color: #514133;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.guildRecordsCloseButton {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 3px 0 4px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(112, 74, 47, 0.48);
+  background: transparent;
+  color: #6b432d;
+  font: inherit;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.guildRecordsCloseButton:hover:not(:disabled) {
+  border-color: #8b4a2d;
+  color: #9c4b26;
+}
+
+.guildRecordsCloseButton:focus-visible {
+  outline: 2px solid #8b4a2d;
+  outline-offset: 4px;
+}
+
+.guildRecordsCloseButton:disabled {
+  cursor: default;
+}
+
+.guildRecordsPages {
+  position: absolute;
+  z-index: 1;
+  top: 5px;
+  bottom: -12px;
+  left: 50%;
+  width: 50%;
+  border: 1px solid rgba(89, 61, 35, 0.78);
+  border-radius: 0 5px 7px 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(97, 72, 43, 0.26) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, #b79f70 0%, #eadab2 12%, #ddc99b 100%);
+  box-shadow:
+    2px 3px 0 #9c8055,
+    4px 6px 0 #e0cda0,
+    6px 9px 0 #a48a60,
+    8px 12px 0 #dfc99a,
+    10px 15px 16px rgba(0, 0, 0, 0.44),
+    inset -6px 0 9px rgba(81, 52, 28, 0.25);
+  transform: translateZ(-10px);
+  transition: left 760ms cubic-bezier(0.48, 0.02, 0.18, 1), width 760ms cubic-bezier(0.48, 0.02, 0.18, 1);
+}
+
+.guildRecordsPages::before {
+  position: absolute;
+  inset: 3px -7px -6px 3px;
+  border: 1px solid rgba(122, 94, 58, 0.58);
+  border-radius: 0 4px 6px 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(97, 72, 43, 0.2) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, #d7c394, #f0e2bd 25%, #cbb588);
+  box-shadow: 3px 5px 0 #a89065, 6px 9px 0 #d9c69a;
+  content: "";
+  transform: translateZ(-1px);
+}
+
+.guildRecordsBook[data-book-state="opening"] .guildRecordsPages,
+.guildRecordsBook[data-book-state="open"] .guildRecordsPages {
+  left: -1%;
+  width: 102%;
+}
+
+.guildRecordsBook[data-book-state="closing"] .guildRecordsPages {
+  left: 50%;
+  width: 50%;
+}
+
+.guildRecordsBookmark {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  bottom: -6%;
+  left: 50%;
+  width: clamp(6px, 0.68vw, 9px);
+  background-image:
+    linear-gradient(90deg, rgba(58, 8, 11, 0.6), rgba(129, 25, 30, 0.26) 42%, rgba(65, 8, 12, 0.58)),
+    url("../../assets/red-fabric.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: 1px 2px 4px rgba(27, 11, 8, 0.62), inset 1px 0 rgba(244, 173, 135, 0.34);
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 50% 100%, 0 95%);
+  pointer-events: none;
+  transform: translateX(-50%) translateZ(4px) rotate(0.35deg);
+}
+
+.guildRecordsCover {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 50%;
+  display: block;
+  width: 50%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(38, 19, 9, 0.92);
+  border-radius: 7px 11px 10px 7px;
+  background-image:
+    linear-gradient(135deg, rgba(36, 16, 7, 0.3), rgba(24, 10, 4, 0.4)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    inset 7px 0 11px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(225, 178, 111, 0.5),
+    inset 0 0 0 8px rgba(17, 10, 7, 0.24),
+    inset 0 0 0 9px rgba(186, 139, 82, 0.2),
+    0 20px 34px rgba(0, 0, 0, 0.46);
+  color: #c3a16e;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  transform: translateZ(8px);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 900ms cubic-bezier(0.48, 0.02, 0.18, 1), box-shadow 280ms ease;
+  backface-visibility: visible;
+}
+
+.guildRecordsBook[data-book-state="opening"] .guildRecordsCover,
+.guildRecordsBook[data-book-state="open"] .guildRecordsCover {
+  transform: translateZ(-12px) rotateY(180deg);
+}
+
+.guildRecordsBook[data-book-state="closing"] .guildRecordsCover {
+  transform: translateZ(8px);
+}
+
+.guildRecordsCover:disabled {
+  opacity: 1;
+}
+
+.guildRecordsCover::before {
+  position: absolute;
+  top: 7%;
+  bottom: 7%;
+  left: 13%;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(240, 197, 131, 0.46) 12%, rgba(240, 197, 131, 0.46) 88%, transparent);
+  content: "";
+  backface-visibility: hidden;
+}
+
+.guildRecordsCover::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 20%, transparent);
+  content: "";
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.guildRecordsCoverInner {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: 1px solid rgba(38, 19, 9, 0.92);
+  border-radius: 7px 11px 10px 7px;
+  background-image:
+    linear-gradient(135deg, rgba(36, 16, 7, 0.46), rgba(24, 10, 4, 0.56)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 9px rgba(17, 10, 7, 0.32), inset 0 0 0 10px rgba(186, 139, 82, 0.18);
+  transform: rotateY(180deg) translateZ(1px);
+  backface-visibility: hidden;
+}
+
+.guildRecordsCoverBorder {
+  position: absolute;
+  z-index: 2;
+  inset: clamp(10px, 1.6vw, 16px);
+  border: 1px solid rgba(234, 188, 122, 0.38);
+  border-radius: 3px 5px 5px 3px;
+  box-shadow: inset 0 0 0 4px rgba(14, 8, 6, 0.16);
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.guildRecordsCoverContent {
+  position: absolute;
+  z-index: 3;
+  inset: 14% 10% 12% 15%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vh, 17px);
+  text-align: center;
+  backface-visibility: hidden;
+}
+
+.guildRecordsCoverKicker {
+  color: rgba(249, 218, 172, 0.88);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: clamp(8px, 0.9vw, 10px);
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.guildRecordsInsignia {
+  display: grid;
+  width: clamp(30px, 4.2vw, 46px);
+  height: clamp(30px, 4.2vw, 46px);
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(227, 183, 122, 0.46);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(13, 8, 6, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+.guildRecordsInsignia svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: rgba(244, 211, 165, 0.9);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.25;
+}
+
+.guildRecordsCoverTitle {
+  color: #f0d7a8;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(21px, 2.5vw, 30px);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.18;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px #120b08, 0 -1px rgba(255, 228, 185, 0.14);
+}
+
+.guildRecordsCoverRule {
+  width: 40%;
+  height: 1px;
+  flex: 0 0 auto;
+  background: linear-gradient(90deg, transparent, rgba(235, 190, 126, 0.72), transparent);
+}
+
+.guildRecordsCoverSubtitle {
+  color: rgba(243, 211, 164, 0.84);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: clamp(8px, 0.8vw, 10px);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.guildRecordsSpine {
+  position: absolute;
+  z-index: 4;
+  top: -1%;
+  bottom: -1%;
+  left: 50%;
+  width: clamp(14px, 1.25vw, 19px);
+  border: 1px solid rgba(22, 12, 8, 0.78);
+  border-radius: 5px;
+  background-image:
+    linear-gradient(90deg, rgba(14, 7, 4, 0.54), rgba(206, 145, 83, 0.08) 48%, rgba(16, 8, 4, 0.56)),
+    url("../../assets/old-book-leather.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: inset 2px 0 5px rgba(0, 0, 0, 0.46), 2px 0 5px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  transform: translateX(-50%) translateZ(2px);
+}
+
+.guildRecordsCover:focus-visible {
+  outline: 2px solid #ffca4b;
+  outline-offset: 6px;
+}
+
+.guildRecordsCloseButton:focus-visible {
+  outline-offset: 3px;
+}
+
+.guildRecordsCover:active {
+  box-shadow:
+    inset 5px 0 8px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(186, 139, 82, 0.6),
+    inset 0 0 0 7px rgba(17, 10, 7, 0.3),
+    inset 0 0 0 8px rgba(186, 139, 82, 0.24),
+    0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .guildRecordsBook[data-book-state="closed"]:hover {
+    transform: translateX(-25%) translateY(-4px) rotateX(1.5deg) rotateZ(-0.35deg);
+  }
+
+  .guildRecordsCover:hover {
+    box-shadow:
+      inset 7px 0 11px rgba(0, 0, 0, 0.42),
+      inset 0 0 0 1px rgba(186, 139, 82, 0.6),
+      inset 0 0 0 8px rgba(17, 10, 7, 0.3),
+      inset 0 0 0 9px rgba(186, 139, 82, 0.24),
+      0 24px 38px rgba(0, 0, 0, 0.52);
+  }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  .guildRecordsBook {
+    width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+    max-height: calc(100svh - 240px);
+  }
+
+  .guildRecordsPaperContent {
+    padding: clamp(18px, 2.4vw, 30px) clamp(20px, 3vw, 32px);
+  }
+
+  .guildRecordsFields {
+    gap: clamp(11px, 1.6vh, 16px);
+    margin-top: 20px;
+  }
+
+  .guildRecordsAmendments {
+    margin-top: 18px;
+  }
+
+  .guildRecordsAmendmentLine {
+    min-height: clamp(30px, 3.2vh, 34px);
+  }
+}
+
+@media (max-height: 640px) and (min-width: 641px) {
+  .guildRecordsBookStage {
+    top: 8%;
+    bottom: 1%;
+  }
+
+  .guildRecordsBook {
+    width: min(92vw, 700px, calc((100svh - 180px) * 1.65));
+    max-height: none;
+  }
+
+  .guildRecordsPaperContent {
+    padding: 20px 24px 18px;
+  }
+
+  .guildRecordsFolioRow {
+    min-height: 20px;
+  }
+
+  .guildRecordsPaperContent h2 {
+    margin-top: 5px;
+    font-size: clamp(20px, 2vw, 27px);
+  }
+
+  .guildRecordsPaperRule {
+    margin-top: 10px;
+  }
+
+  .guildRecordsFields {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .guildRecordsFields dd {
+    min-height: 20px;
+  }
+
+  .guildRecordsAmendments {
+    margin-top: 12px;
+  }
+
+  .guildRecordsAmendments h3,
+  .guildRecordsAttachments h3 {
+    margin-bottom: 6px;
+    font-size: 10px;
+  }
+
+  .guildRecordsAmendmentLine {
+    min-height: 28px;
+    font-size: 10px;
+  }
+
+  .guildRecordsHandnote {
+    margin: 10px 0 6px;
+    font-size: 12px;
+  }
+
+  .guildRecordsAttachments {
+    margin-top: 10px;
+    padding-top: 8px;
+  }
+
+  .guildRecordsAttachments p {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .guildRecordsPaperFooter {
+    padding-top: 8px;
+    font-size: 8px;
+  }
+
+  .guildRecordsCloseButton {
+    min-height: 22px;
+    padding: 2px 0 3px 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .guildRecordsReturnLink {
+    top: max(16px, env(safe-area-inset-top, 0px) + 8px);
+    left: max(16px, env(safe-area-inset-left, 0px) + 8px);
+    font-size: 10px;
+  }
+
+  .guildRecordsBookStage {
+    top: 8%;
+    bottom: 4%;
+  }
+
+  .guildRecordsBook {
+    width: min(88vw, 440px);
+    max-height: none;
+    aspect-ratio: 0.72;
+    transform: rotateX(1deg);
+  }
+
+  .guildRecordsBook::before {
+    top: -8px;
+    bottom: -12px;
+    left: 0;
+    width: 100%;
+    border-radius: 6px 10px 11px 6px;
+  }
+
+  .guildRecordsBook[data-book-state="opening"],
+  .guildRecordsBook[data-book-state="open"] {
+    transform: rotateX(1deg);
+  }
+
+  .guildRecordsBook[data-book-state="closing"] {
+    transform: rotateX(1deg);
+  }
+
+  .guildRecordsSpread {
+    display: block;
+    grid-template-columns: none;
+  }
+
+  .guildRecordsLeftPage,
+  .guildRecordsRightPage,
+  .guildRecordsGutter {
+    display: none;
+  }
+
+  .guildRecordsMobilePage {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .guildRecordsMobilePage .guildRecordsPaperContent {
+    min-height: 100%;
+    height: auto;
+    padding: 22px clamp(24px, 7vw, 34px) 18px;
+  }
+
+  .guildRecordsPaperContent h2 {
+    font-size: clamp(22px, 6vw, 28px);
+  }
+
+  .guildRecordsFields {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .guildRecordsFields > div {
+    grid-template-columns: minmax(0, 0.95fr) minmax(70px, 1.05fr);
+    gap: 12px;
+  }
+
+  .guildRecordsFields dt {
+    font-size: 11px;
+  }
+
+  .guildRecordsFields dd {
+    min-height: 20px;
+  }
+
+  .guildRecordsMobileNotes {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(67, 48, 34, 0.22);
+  }
+
+  .guildRecordsMobileNotes h3:not(:first-child) {
+    margin-top: 14px;
+  }
+
+  .guildRecordsMobileNotes .guildRecordsHandnote {
+    margin: 8px 0 12px;
+  }
+
+  .guildRecordsMobilePage .guildRecordsPaperFooter {
+    margin-top: 16px;
+  }
+
+  .guildRecordsPages {
+    top: 5px;
+    bottom: -12px;
+    left: 0;
+    right: 0;
+    width: auto;
+    border-radius: 5px 7px 8px 5px;
+  }
+
+  .guildRecordsBookmark {
+    top: 0;
+    bottom: -6%;
+    left: 0;
+    width: 6px;
+  }
+
+  .guildRecordsCover {
+    left: 0;
+    width: 100%;
+    border-radius: 7px 11px 10px 7px;
+    transform-origin: left center;
+  }
+
+  .guildRecordsBook[data-book-state="opening"] .guildRecordsCover,
+  .guildRecordsBook[data-book-state="open"] .guildRecordsCover {
+    transform: translateZ(-12px) rotateY(180deg);
+  }
+
+  .guildRecordsBook[data-book-state="closing"] .guildRecordsCover {
+    transform: translateZ(8px);
+  }
+
+  .guildRecordsCoverContent {
+    inset: 14% 11%;
+    gap: clamp(12px, 3vh, 19px);
+  }
+
+  .guildRecordsCoverKicker,
+  .guildRecordsCoverSubtitle {
+    font-size: 9px;
+  }
+
+  .guildRecordsCoverTitle {
+    font-size: clamp(20px, 6vw, 26px);
+  }
+
+  .guildRecordsInsignia {
+    width: 38px;
+    height: 38px;
+  }
+
+  .guildRecordsSpine {
+    left: 0;
+    width: clamp(14px, 4vw, 18px);
+    border-radius: 6px 0 0 6px;
+    transform: translateX(-50%) translateZ(2px);
+  }
+}
+
+.guildRecordsBook[data-book-variant="landing"] {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 0.72;
+  transform: rotateX(2deg) rotateY(-7deg) rotateZ(-0.7deg);
+  filter: drop-shadow(0 18px 14px rgba(0, 0, 0, 0.38));
+}
+
+.guildRecordsBook[data-book-variant="landing"]::before {
+  top: -4px;
+  bottom: -9px;
+  left: 1px;
+  width: 100%;
+  border-radius: 4px 8px 8px 4px;
+  box-shadow:
+    0 10px 16px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(215, 164, 100, 0.28);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsPages {
+  inset: 7px -9px -10px 7px;
+  width: auto;
+  border-radius: 3px 8px 7px 3px;
+  border-color: rgba(89, 61, 35, 0.82);
+  box-shadow:
+    2px 3px 0 #9c8055,
+    4px 6px 0 #e0cda0,
+    6px 9px 0 #a48a60,
+    8px 11px 12px rgba(0, 0, 0, 0.38),
+    inset -5px 0 7px rgba(81, 52, 28, 0.22);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsBookmark {
+  top: auto;
+  bottom: -13%;
+  left: auto;
+  right: 18%;
+  width: 7px;
+  height: 20%;
+  transform: none;
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCover {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px 11px 10px 7px;
+  transform: translateZ(4px);
+  box-shadow:
+    inset 5px 0 9px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(225, 178, 111, 0.54),
+    inset 0 0 0 6px rgba(17, 10, 7, 0.26),
+    inset 0 0 0 7px rgba(186, 139, 82, 0.22),
+    0 14px 24px rgba(0, 0, 0, 0.48);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsSpine {
+  top: 1%;
+  bottom: 1%;
+  left: 0;
+  width: 9px;
+  border-radius: 6px 0 0 6px;
+  transform: translateX(-50%) translateZ(5px);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCoverContent {
+  inset: 12% 8% 11% 12%;
+  gap: clamp(5px, 5.5cqh, 9px);
+  overflow: hidden;
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCoverBorder {
+  inset: 7px;
+  border-radius: 3px 6px 6px 3px;
+  box-shadow:
+    inset 0 0 0 3px rgba(14, 8, 6, 0.14),
+    0 0 0 1px rgba(14, 8, 6, 0.16);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCoverKicker {
+  max-width: 100%;
+  font-size: clamp(5.5px, 5.4cqh, 8px);
+  letter-spacing: 0.12em;
+  line-height: 1.25;
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsInsignia {
+  width: clamp(16px, 19cqh, 24px);
+  height: clamp(16px, 19cqh, 24px);
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCoverTitle {
+  max-width: 100%;
+  font-size: clamp(10px, 10cqh, 15px);
+  line-height: 1.12;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.guildRecordsBook[data-book-variant="landing"] .guildRecordsCoverSubtitle {
+  max-width: 100%;
+  font-size: clamp(5px, 4.8cqh, 7px);
+  line-height: 1.25;
+  letter-spacing: 0.1em;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .guildRecordsBook[data-book-variant="landing"]:hover {
+    transform: translateY(-4px) rotateX(2deg) rotateY(-5deg) rotateZ(-0.4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guildRecordsReturnLink,
+  .guildRecordsBook,
+  .guildRecordsBook::before,
+  .guildRecordsPages,
+  .guildRecordsCover,
+  .guildRecordsSpread,
+  .guildRecordsCloseButton {
+    transition: none;
+  }
+
+  .guildRecordsBook[data-book-state="closed"]:hover {
+    transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  }
+
+  .guildRecordsBook[data-book-variant="landing"]:hover {
+    transform: rotateX(2deg) rotateY(-7deg) rotateZ(-0.7deg);
+  }
+}
+
+.guildRecordsBook[data-reduced-motion="true"],
+.guildRecordsBook[data-reduced-motion="true"]::before,
+.guildRecordsBook[data-reduced-motion="true"] .guildRecordsPages,
+.guildRecordsBook[data-reduced-motion="true"] .guildRecordsCover,
+.guildRecordsBook[data-reduced-motion="true"] .guildRecordsSpread,
+.guildRecordsBook[data-reduced-motion="true"] .guildRecordsCloseButton {
+  transition: none;
+}
+
+.guildRecordsBook[data-reduced-motion="true"][data-book-state="closed"]:hover {
+  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+}
+
+.guildRecordsBook[data-reduced-motion="true"][data-book-variant="landing"]:hover {
+  transform: rotateX(2deg) rotateY(-7deg) rotateZ(-0.7deg);
+}
