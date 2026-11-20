@@ -958,6 +958,7 @@
 }
 
 .guildRecordsBook[data-book-variant="landing"] .guildRecordsPages {
+  display: none;
   inset: 7px -9px -10px 7px;
   width: auto;
   border-radius: 3px 8px 7px 3px;

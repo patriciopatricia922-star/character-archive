@@ -1,4 +1,6 @@
 .scene-transition-overlay {
+  --scene-transition-duration: 680ms;
+  --scene-transition-easing: cubic-bezier(0.4, 0, 0.6, 1);
   position: fixed;
   z-index: 2000;
   inset: 0;
@@ -7,8 +9,8 @@
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 560ms cubic-bezier(0.22, 0.7, 0.2, 1),
-    visibility 0s linear 560ms;
+    opacity var(--scene-transition-duration) var(--scene-transition-easing),
+    visibility 0s linear var(--scene-transition-duration);
 }
 
 .scene-transition-overlay[data-phase="covering"] {
@@ -16,7 +18,7 @@
   visibility: visible;
   pointer-events: auto;
   transition:
-    opacity 560ms cubic-bezier(0.22, 0.7, 0.2, 1),
+    opacity var(--scene-transition-duration) var(--scene-transition-easing),
     visibility 0s;
 }
 
@@ -25,7 +27,7 @@
   visibility: visible;
   pointer-events: auto;
   transition:
-    opacity 560ms cubic-bezier(0.22, 0.7, 0.2, 1),
+    opacity var(--scene-transition-duration) var(--scene-transition-easing),
     visibility 0s;
 }
 

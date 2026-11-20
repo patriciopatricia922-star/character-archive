@@ -25,7 +25,7 @@ const EFFECTS_PREFERENCE_KEY = "character-archive-visual-effects";
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const FLICKER_INTERVAL = 15 * 60 * 1000;
 const FLICKER_DURATION = 10 * 1000;
-const BOOK_TRANSITION_HANDOFF_DELAY = 620;
+const BOOK_TRANSITION_HANDOFF_DELAY = 720;
 
 type ExhibitionSettings = {
   spotlightFlickering: boolean;
