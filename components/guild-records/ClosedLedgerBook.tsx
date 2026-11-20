@@ -7,13 +7,19 @@ import "./ClosedLedger.css";
 
 type Props = {
   href?: string;
+  onEnter?: () => void;
+  isEntering?: boolean;
 };
 
 type BookState = "closed" | "opening" | "open" | "closing";
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 
-export default function ClosedLedgerBook({ href }: Props) {
+export default function ClosedLedgerBook({
+  href,
+  onEnter,
+  isEntering = false,
+}: Props) {
   const [bookState, setBookState] = useState<BookState>("closed");
   const [reducedMotion, setReducedMotion] = useState(false);
   const coverRef = useRef<HTMLButtonElement>(null);
@@ -271,7 +277,13 @@ export default function ClosedLedgerBook({ href }: Props) {
           className="guildRecordsCover"
           href={href}
           aria-label="Enter Guild Records"
+          aria-disabled={isEntering}
           title="Enter Guild Records"
+          onClick={(event) => {
+            if (!onEnter) return;
+            event.preventDefault();
+            if (!isEntering) onEnter();
+          }}
         >
           {coverContent}
         </Link>

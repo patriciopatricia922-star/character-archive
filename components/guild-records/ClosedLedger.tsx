@@ -3,7 +3,11 @@ import { guildRecords } from "../../data/guildRecords";
 import GuildRecordsBook from "./GuildRecordsBook";
 import "./ClosedLedger.css";
 
-export default function ClosedLedger() {
+export default function ClosedLedger({
+  entryToken,
+}: {
+  entryToken?: string;
+}) {
   return (
     <main className="guildRecordsPage">
       <div className="guildRecordsAtmosphere" aria-hidden="true">
@@ -16,7 +20,7 @@ export default function ClosedLedger() {
 
       <div className="guildRecordsExperience">
         <div className="guildRecordsBookStage">
-          <GuildRecordsBook guilds={guildRecords} />
+          <GuildRecordsBook guilds={guildRecords} entryToken={entryToken} />
         </div>
       </div>
     </main>

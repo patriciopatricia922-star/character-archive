@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent, WheelEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { CSSProperties, PointerEvent, TouchEvent, WheelEvent } from "react";
 import Image from "next/image";
 import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
@@ -99,7 +100,12 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [flickering, setFlickering] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
+  const [enteringBook, setEnteringBook] = useState(false);
   const drag = useRef({ x: 0, active: false, moved: false });
+  const bookTouchStart = useRef<{ x: number; y: number } | null>(null);
+  const bookEntryTimeout = useRef<number | null>(null);
+  const bookEntryStarted = useRef(false);
+  const bookEntrySequence = useRef(0);
   const lastWheel = useRef(0);
   const stageRef = useRef<HTMLElement>(null);
   const zoomedRef = useRef(false);
@@ -109,6 +115,8 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const enableEffectsRef = useRef<HTMLButtonElement>(null);
   const disableFlickerRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
   const effectiveReducedMotion = systemReducedMotion || settings.reducedMotion;
   const showVisitorNotice = preferenceLoaded && !hasEntered;
   const entered = preferenceLoaded && hasEntered;
@@ -154,9 +162,69 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
     window.requestAnimationFrame(() => settingsButtonRef.current?.focus());
   };
 
+  const enterBook = useCallback(() => {
+    if (bookEntryStarted.current) return;
+    bookEntryStarted.current = true;
+    setEnteringBook(true);
+
+    const reducedMotion =
+      effectiveReducedMotion ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const navigate = () =>
+      router.push(
+        `/guild-records?entry=${Date.now().toString(36)}-${++bookEntrySequence.current}`,
+        { scroll: false },
+      );
+
+    if (reducedMotion) {
+      navigate();
+      return;
+    }
+
+    bookEntryTimeout.current = window.setTimeout(() => {
+      bookEntryTimeout.current = null;
+      navigate();
+    }, 900);
+  }, [effectiveReducedMotion, router]);
+
+  const onBookTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches.item(0);
+    bookTouchStart.current =
+      event.touches.length === 1 && touch
+        ? { x: touch.clientX, y: touch.clientY }
+        : null;
+  };
+
+  const onBookTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = bookTouchStart.current;
+    const touch = event.changedTouches.item(0);
+    bookTouchStart.current = null;
+    if (!start || !touch) return;
+
+    const deltaY = start.y - touch.clientY;
+    const deltaX = touch.clientX - start.x;
+    if (deltaY > 54 && deltaY > Math.abs(deltaX) * 1.25) enterBook();
+  };
+
   useEffect(() => {
     setGalleryActive(entered);
   }, [entered, setGalleryActive]);
+
+  useEffect(
+    () => () => {
+      if (bookEntryTimeout.current !== null) {
+        window.clearTimeout(bookEntryTimeout.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    bookEntryStarted.current = false;
+    const frame = window.requestAnimationFrame(() => setEnteringBook(false));
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
 
   useEffect(() => {
     const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -427,8 +495,10 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         data-dust={settings.floatingDustParticles}
         data-page-hidden={!pageVisible}
         data-effects-dialog={showVisitorNotice}
+        data-entering-book={enteringBook}
         aria-hidden={experienceBlocked}
         inert={experienceBlocked}
+        aria-busy={enteringBook}
         aria-roledescription="carousel"
         aria-label="Portrait gallery"
         onPointerDown={onPointerDown}
@@ -528,8 +598,21 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             className="pf-guild-ledger"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => event.stopPropagation()}
+            onTouchStart={onBookTouchStart}
+            onTouchEnd={onBookTouchEnd}
+            onTouchCancel={() => (bookTouchStart.current = null)}
           >
-            <ClosedLedgerBook href="/guild-records" />
+            <ClosedLedgerBook
+              href="/guild-records?entry=landing"
+              onEnter={enterBook}
+              isEntering={enteringBook}
+            />
+            <span className="pf-book-swipe-cue" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 20V4m-6 6 6-6 6 6" />
+              </svg>
+              <span>Swipe up to enter</span>
+            </span>
           </div>
         )}
 

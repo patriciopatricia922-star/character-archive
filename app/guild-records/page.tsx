@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import ClosedLedger from "../../components/guild-records/ClosedLedger";
 
 export const metadata: Metadata = {
@@ -6,6 +7,19 @@ export const metadata: Metadata = {
   description: "Guild Records registry ledger.",
 };
 
-export default function GuildRecordsPage() {
-  return <ClosedLedger />;
+async function GuildRecordsContent({
+  searchParams,
+}: Pick<PageProps<"/guild-records">, "searchParams">) {
+  const { entry } = await searchParams;
+  return <ClosedLedger entryToken={typeof entry === "string" ? entry : undefined} />;
+}
+
+export default function GuildRecordsPage(
+  props: PageProps<"/guild-records">,
+) {
+  return (
+    <Suspense fallback={<ClosedLedger />}>
+      <GuildRecordsContent searchParams={props.searchParams} />
+    </Suspense>
+  );
 }

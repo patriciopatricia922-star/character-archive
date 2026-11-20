@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import type { TransitionEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   buildGuildLedgerSpreads,
   getGuildSpreadId,
@@ -38,6 +39,7 @@ type PageTurn = {
 
 type GuildRecordsBookProps = {
   guilds: readonly GuildRecord[];
+  entryToken?: string;
 };
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
@@ -847,8 +849,12 @@ function SpreadSurface({
   );
 }
 
-export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
+export default function GuildRecordsBook({
+  guilds,
+  entryToken,
+}: GuildRecordsBookProps) {
   const { setBookMuffled } = useAmbientMusic();
+  const router = useRouter();
   const spreads = useMemo(() => buildGuildLedgerSpreads(guilds), [guilds]);
   const spreadIndices = useMemo(
     () => new Map(spreads.map((spread, index) => [spread.id, index])),
@@ -856,6 +862,7 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
   );
   const [bookState, setBookState] = useState<BookState>("closed");
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [motionPreferenceLoaded, setMotionPreferenceLoaded] = useState(false);
   const [currentSpreadIndex, setCurrentSpreadIndex] = useState(0);
   const activeSpreadIndex = Math.min(currentSpreadIndex, spreads.length - 1);
   const [turn, setTurn] = useState<PageTurn | null>(null);
@@ -868,6 +875,7 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
   const turnRef = useRef<PageTurn | null>(null);
   const turnSequence = useRef(0);
   const previousBookState = useRef<BookState>("closed");
+  const autoOpenHandled = useRef<string | null>(null);
 
   useEffect(() => {
     const motionPreference = window.matchMedia(
@@ -898,9 +906,13 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
     };
 
     updatePreference();
+    const preferenceFrame = window.requestAnimationFrame(() =>
+      setMotionPreferenceLoaded(true),
+    );
     motionPreference.addEventListener("change", updatePreference);
     window.addEventListener("storage", updatePreference);
     return () => {
+      window.cancelAnimationFrame(preferenceFrame);
       motionPreference.removeEventListener("change", updatePreference);
       window.removeEventListener("storage", updatePreference);
     };
@@ -959,7 +971,7 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
     [setBookMuffled],
   );
 
-  const beginOpening = () => {
+  const beginOpening = useCallback(() => {
     if (bookState !== "closed") return;
     setBookMuffled(true);
     setBookState("opening");
@@ -976,7 +988,22 @@ export default function GuildRecordsBook({ guilds }: GuildRecordsBookProps) {
       () => finishBookTransition("opening"),
       BOOK_OPEN_DURATION,
     );
-  };
+  }, [bookState, finishBookTransition, reducedMotion, setBookMuffled]);
+
+  useEffect(() => {
+    if (
+      !motionPreferenceLoaded ||
+      !entryToken ||
+      autoOpenHandled.current === entryToken ||
+      bookState !== "closed"
+    ) {
+      return;
+    }
+
+    autoOpenHandled.current = entryToken;
+    beginOpening();
+    router.replace("/guild-records", { scroll: false });
+  }, [beginOpening, bookState, entryToken, motionPreferenceLoaded, router]);
 
   const beginClosing = () => {
     if (bookState !== "open" || turnRef.current) return;

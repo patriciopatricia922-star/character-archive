@@ -22,8 +22,11 @@
   touch-action:pan-y;
   user-select:none;
   -webkit-user-select:none;
-  cursor:grab
+  cursor:grab;
+  transform-origin:50% 100%;
+  transition:transform 900ms var(--ease),opacity 260ms ease 640ms
 }
+.pf-stage[data-entering-book="true"]{transform:translate3d(0,-12svh,0) scale(1.13);opacity:0;pointer-events:none}
 
 .pf-wall{position:absolute;inset:-6% -8%;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:16px;transition:transform 900ms var(--ease),opacity 700ms ease;will-change:transform}
 .pf-wall-cell{width:var(--ww);aspect-ratio:3/4;border:1px solid #29211c;opacity:.3;overflow:hidden;transition:opacity 600ms ease}
@@ -107,10 +110,13 @@
 .pf-document-index{display:none}
 
 .pf-dots{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;justify-content:center;gap:6px;transition:opacity 400ms ease}
-.pf-guild-ledger{position:absolute;z-index:12;right:clamp(20px,3vw,44px);bottom:clamp(52px,8vh,84px);width:clamp(92px,10.5vw,150px);aspect-ratio:.72;perspective:900px;isolation:isolate}
+.pf-guild-ledger{position:absolute;z-index:12;left:50%;bottom:clamp(42px,6svh,80px);width:clamp(150px,15vw,218px);aspect-ratio:.72;perspective:900px;isolation:isolate;transform:translateX(-50%)}
 .pf-guild-ledger::before{position:absolute;z-index:-1;right:-18%;bottom:-9%;left:-18%;height:16%;border-radius:50%;background:rgba(0,0,0,.58);content:"";filter:blur(10px);pointer-events:none}
 .pf-guild-ledger .guildRecordsBook{position:relative;z-index:1;width:100%;height:100%;container-type:size}
 .pf-guild-ledger .guildRecordsCover{color:#c3a16e}
+.pf-book-swipe-cue{position:absolute;top:calc(100% + 15px);left:50%;display:none;flex-direction:column;align-items:center;gap:4px;width:max-content;color:rgba(255,253,208,.72);font-size:9px;letter-spacing:.14em;text-align:center;text-transform:uppercase;transform:translateX(-50%);pointer-events:none}
+.pf-book-swipe-cue svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:pf-book-swipe-cue 1.8s ease-in-out infinite}
+@keyframes pf-book-swipe-cue{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .pf-dot{position:relative;width:22px;height:22px;padding:0;border:0;background:none;cursor:pointer}
 .pf-dot::before{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#51453c;transition:background 400ms ease,transform 400ms ease}
 .pf-dot[aria-current="true"]::before{background:var(--mimosa);transform:scale(1.4)}
@@ -170,6 +176,7 @@
 .pf-effects-foot{margin:13px 0 0;color:var(--muted-ink);font-size:10px;line-height:1.5}
 
 @media(prefers-reduced-motion:reduce){
+  .pf-stage{transition:none!important}
   .pf-stage *,
   .pf-stage *::before,
   .pf-stage *::after,
@@ -180,8 +187,11 @@
   .pf-dust{animation:none!important}
   .pf-dust-layer{display:none!important}
   .pf-stage[data-flickering="true"] .pf-light{animation:none!important}
+  .pf-book-swipe-cue svg{animation:none!important}
 }
 
+.pf-stage[data-reduced-motion="true"]{transition:none!important}
+.pf-stage[data-reduced-motion="true"] .pf-book-swipe-cue svg{animation:none!important}
 .pf-stage[data-reduced-motion="true"] *,
 .pf-stage[data-reduced-motion="true"] *::before,
 .pf-stage[data-reduced-motion="true"] *::after,
@@ -215,7 +225,8 @@
   .pf-back{top:calc(env(safe-area-inset-top,0px) + 10px)}
   .pf-settings-button{top:calc(env(safe-area-inset-top,0px) + 10px);right:10px}
   .pf-music-toggle{top:calc(env(safe-area-inset-top,0px) + 10px);right:62px}
-  .pf-guild-ledger{right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);width:clamp(76px,23vw,94px)}
+  .pf-guild-ledger{bottom:calc(env(safe-area-inset-bottom,0px) + clamp(92px,14svh,132px));width:clamp(78px,24vw,110px)}
+  .pf-book-swipe-cue{display:flex}
   .pf-settings-panel{top:calc(env(safe-area-inset-top,0px) + 60px);right:10px;width:min(352px,calc(100vw - 20px));padding:19px}
   .pf-effects-scrim{padding:18px}
   .pf-effects-dialog{padding:30px 24px 21px}
@@ -234,6 +245,11 @@
   .pf-stage{--px:-24vw;--ps:1.05;--w:clamp(150px,22vw,200px);min-height:100svh}
   .pf-dossier{right:24px;width:clamp(360px,45vw,460px);height:min(78svh,520px)}
   .pf-paper-content{padding:28px 34px}
+}
+
+@media(min-width:640px) and (max-width:899px) and (min-aspect-ratio:6/5) and (pointer:coarse){
+  .pf-guild-ledger{bottom:calc(env(safe-area-inset-bottom,0px) + clamp(98px,25svh,110px));width:clamp(76px,16svh,112px)}
+  .pf-book-swipe-cue{display:flex}
 }
 
 @media(max-width:767px){

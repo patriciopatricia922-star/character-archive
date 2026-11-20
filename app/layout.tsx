@@ -13,10 +13,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// export const metadata: Metadata = {
-//   title: "Faeron",
-//   description: "Faeron is a personal website i made out of boredom",
-// };
+export const metadata: Metadata = {
+  title: "Faeron",
+  // description: "Faeron is a personal website i made out of boredom",
+};
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
