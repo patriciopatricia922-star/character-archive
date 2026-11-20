@@ -7,6 +7,7 @@ import Image from "next/image";
 import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
 import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
+import { GUILD_RECORDS_TRANSITION_EVENT } from "../SceneTransitionOverlay";
 import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
 import { useAmbientMusic } from "./AmbientMusic";
 import PortraitArt from "./PortraitArt";
@@ -24,6 +25,7 @@ const EFFECTS_PREFERENCE_KEY = "character-archive-visual-effects";
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const FLICKER_INTERVAL = 15 * 60 * 1000;
 const FLICKER_DURATION = 10 * 1000;
+const BOOK_TRANSITION_HANDOFF_DELAY = 620;
 
 type ExhibitionSettings = {
   spotlightFlickering: boolean;
@@ -102,7 +104,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const [pageVisible, setPageVisible] = useState(true);
   const [enteringBook, setEnteringBook] = useState(false);
   const drag = useRef({ x: 0, active: false, moved: false });
-  const bookTouchStart = useRef<{ x: number; y: number } | null>(null);
+  const entryTouchStart = useRef<{ x: number; y: number } | null>(null);
   const bookEntryTimeout = useRef<number | null>(null);
   const bookEntryStarted = useRef(false);
   const bookEntrySequence = useRef(0);
@@ -181,29 +183,43 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
       return;
     }
 
+    window.dispatchEvent(new Event(GUILD_RECORDS_TRANSITION_EVENT));
     bookEntryTimeout.current = window.setTimeout(() => {
       bookEntryTimeout.current = null;
       navigate();
-    }, 900);
+    }, BOOK_TRANSITION_HANDOFF_DELAY);
   }, [effectiveReducedMotion, router]);
 
-  const onBookTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+  const onEntryTouchStart = (event: TouchEvent<HTMLElement>) => {
     const touch = event.touches.item(0);
-    bookTouchStart.current =
-      event.touches.length === 1 && touch
+    const target = event.target;
+    const startedOnControl =
+      target instanceof Element &&
+      target.closest(
+        ".pf-portrait, .pf-dot, .pf-back, .pf-settings-button, .pf-music-toggle, .pf-settings-panel, .pf-effects-dialog",
+      );
+
+    entryTouchStart.current =
+      !experienceBlocked &&
+      !zoomed &&
+      !enteringBook &&
+      event.touches.length === 1 &&
+      touch &&
+      touch.clientY >= window.innerHeight * 0.52 &&
+      !startedOnControl
         ? { x: touch.clientX, y: touch.clientY }
         : null;
   };
 
-  const onBookTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
-    const start = bookTouchStart.current;
+  const onEntryTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    const start = entryTouchStart.current;
     const touch = event.changedTouches.item(0);
-    bookTouchStart.current = null;
+    entryTouchStart.current = null;
     if (!start || !touch) return;
 
     const deltaY = start.y - touch.clientY;
     const deltaX = touch.clientX - start.x;
-    if (deltaY > 54 && deltaY > Math.abs(deltaX) * 1.25) enterBook();
+    if (deltaY >= 72 && deltaY > Math.abs(deltaX) * 1.3) enterBook();
   };
 
   useEffect(() => {
@@ -485,6 +501,9 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
 
   return (
     <>
+      <span className="sr-only" role="status" aria-live="polite">
+        {enteringBook ? "Opening Guild Records." : ""}
+      </span>
       <section
         ref={stageRef}
         className="pf-stage"
@@ -496,8 +515,8 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         data-page-hidden={!pageVisible}
         data-effects-dialog={showVisitorNotice}
         data-entering-book={enteringBook}
-        aria-hidden={experienceBlocked}
-        inert={experienceBlocked}
+        aria-hidden={experienceBlocked || enteringBook}
+        inert={experienceBlocked || enteringBook}
         aria-busy={enteringBook}
         aria-roledescription="carousel"
         aria-label="Portrait gallery"
@@ -505,6 +524,9 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={() => (drag.current.active = false)}
+        onTouchStart={onEntryTouchStart}
+        onTouchEnd={onEntryTouchEnd}
+        onTouchCancel={() => (entryTouchStart.current = null)}
         onWheel={onWheel}
         onClick={() => zoomed && setZoomed(false)}
       >
@@ -566,6 +588,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
                 data-lit={i === lit}
                 data-zoom={zoomed && i === index}
                 data-hidden={a > 3}
+                data-mobile-hidden={a > 1}
                 style={{ "--d": d, "--a": a, "--dim": dim === 0 ? 0 : Math.min(0.88, 0.5 + dim * 0.12) } as CSSProperties}
                 onPointerEnter={(e) => e.pointerType === "mouse" && !zoomed && setHover(i)}
                 onPointerLeave={() => setHover(null)}
@@ -598,9 +621,6 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             className="pf-guild-ledger"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => event.stopPropagation()}
-            onTouchStart={onBookTouchStart}
-            onTouchEnd={onBookTouchEnd}
-            onTouchCancel={() => (bookTouchStart.current = null)}
           >
             <ClosedLedgerBook
               href="/guild-records?entry=landing"
