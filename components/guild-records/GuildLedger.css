@@ -1569,8 +1569,8 @@ a.guildLedgerAttachment:hover {
   .guildLedgerRibbon {
     top: 0;
     bottom: 22%;
-    left: 15px;
-    width: 7px;
+    left: clamp(2px, 1vw, 4px);
+    width: 6px;
     transform: translateX(0) translateZ(6px);
   }
 
