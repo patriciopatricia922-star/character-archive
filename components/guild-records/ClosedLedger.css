@@ -1049,6 +1049,10 @@
   .guildRecordsBook[data-book-variant="landing"]:hover {
     transform: translateY(-4px) rotateX(2deg) rotateY(-5deg) rotateZ(-0.4deg);
   }
+
+  .guildRecordsBook[data-book-variant="landing"]:hover .guildRecordsCover {
+    transform: translateZ(8px) rotateY(-12deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

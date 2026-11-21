@@ -1146,6 +1146,10 @@ a.guildLedgerAttachment:hover {
       rotateZ(-0.35deg);
   }
 
+  .guildLedgerVolume[data-book-state="closed"]:hover .guildLedgerCover {
+    transform: translateZ(10px) rotateY(-12deg);
+  }
+
   .guildLedgerCover:hover {
     box-shadow:
       inset 7px 0 11px rgba(0, 0, 0, 0.42),
