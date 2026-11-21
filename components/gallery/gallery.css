@@ -209,12 +209,20 @@
 .pf-stage[data-reduced-motion="true"] .pf-light{animation:none!important}
 
 @media(max-width:639px),(max-width:899px) and (max-aspect-ratio:6/5){
-  .pf-stage{--H:100svh;--px:0px;--py:calc(var(--H)*-.35);--ps:.92;--pr:0deg;--w:clamp(96px,38vw,168px);--step:calc(var(--w)*.82);--book-width:clamp(80px,9vw,122px);--book-height:calc(var(--book-width)*1.39);--book-bottom:calc(env(safe-area-inset-bottom,0px) + clamp(24px,4svh,40px));--portrait-height:clamp(114px,45vw,199px);--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(18px,4svh,32px);height:100svh;min-height:100svh}
+  .pf-stage{--H:100svh;--px:0px;--py:calc((var(--zoom-top) + var(--zoom-bottom))/2 - 50svh);--ps:1;--pr:0deg;--w:clamp(96px,38vw,168px);--step:calc(var(--w)*.82);--book-width:clamp(80px,9vw,122px);--book-height:calc(var(--book-width)*1.39);--book-bottom:calc(env(safe-area-inset-bottom,0px) + clamp(24px,4svh,40px));--portrait-height:clamp(114px,45vw,199px);--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(18px,4svh,32px);height:100svh;min-height:100svh;
+    /* Zoomed portrait: sized to the room between the top controls and the document stack,
+       so the frame fills that band instead of using a fixed scale. Height is w * 1600/1351. */
+    --dossier-h:min(53svh,480px);
+    --zoom-top:calc(env(safe-area-inset-top,0px) + 66px);
+    --zoom-bottom:calc(100svh - env(safe-area-inset-bottom,0px) - 58px - var(--dossier-h) - 18px);
+    --zoom-h:calc(var(--zoom-bottom) - var(--zoom-top));
+    --zoom-w:max(88px,min(calc(var(--zoom-h)/1.1843),74vw,420px))}
   .pf-stage[data-zoomed="false"] .pf-track{top:calc(50svh - var(--portrait-half) - clamp(0px,8svh,64px));height:var(--portrait-height)}
   .pf-stage[data-zoomed="false"] .pf-portrait{transform:translate3d(calc(var(--d)*var(--step)),0,0) scale(max(.45,calc(1 - var(--a)*.35)))}
-  .pf-stage[data-zoomed="false"] .pf-portrait[data-mobile-hidden="false"]{visibility:visible;transition:transform 420ms var(--ease),opacity 240ms ease}
+  .pf-stage[data-zoomed="false"] .pf-portrait[data-mobile-hidden="false"]{visibility:visible;transition:transform 420ms var(--ease),width 420ms var(--ease),opacity 240ms ease}
+  .pf-stage[data-zoomed="true"] .pf-portrait[data-zoom="true"]{width:var(--zoom-w);transition:transform 850ms var(--ease),width 850ms var(--ease),opacity 500ms ease}
   .pf-stage[data-zoomed="false"] .pf-portrait[data-mobile-hidden="true"]{visibility:hidden;opacity:0;pointer-events:none;transition:transform 420ms var(--ease),opacity 180ms ease}
-  .pf-dossier{top:auto;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 58px);left:10px;width:auto;height:min(53svh,480px);transform:translateY(calc(100% + 50svh)) rotate(0)}
+  .pf-dossier{top:auto;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 58px);left:10px;width:auto;height:var(--dossier-h);transform:translateY(calc(100% + 50svh)) rotate(0)}
   .pf-dossier[data-open="true"]{transform:translateY(0) rotate(0)}
   .pf-paper-stack{height:calc(100% - 44px)}
   .pf-paper{width:calc(100% - 60px);transform:translate3d(calc(var(--depth)*12px),calc(var(--depth)*4px),0) rotate(calc(var(--depth)*.35deg))}
@@ -244,8 +252,8 @@
 }
 
 @media(min-width:600px) and (max-width:899px) and (max-aspect-ratio:6/5){
-  .pf-stage{--py:calc(var(--H)*-.31);--ps:1.06}
-  .pf-dossier{right:18px;left:18px;height:min(49svh,500px)}
+  .pf-stage{--dossier-h:min(49svh,500px)}
+  .pf-dossier{right:18px;left:18px}
   .pf-paper-content{padding:22px 32px}
   .pf-paper-category{margin-top:24px}
   .pf-paper-title{font-size:clamp(34px,6vw,48px)}
