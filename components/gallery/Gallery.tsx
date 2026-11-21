@@ -629,10 +629,10 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
               isEntering={enteringBook}
             />
             <span className="pf-book-swipe-cue" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
+              {/* <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 20V4m-6 6 6-6 6 6" />
-              </svg>
-              <span>Swipe up to enter</span>
+              </svg> */}
+              {/* <span>Swipe up to enter</span> */}
             </span>
           </div>
         )}
