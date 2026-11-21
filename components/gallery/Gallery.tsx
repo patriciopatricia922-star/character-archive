@@ -6,6 +6,7 @@ import type { CSSProperties, PointerEvent, TouchEvent, WheelEvent } from "react"
 import Image from "next/image";
 import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
+import scrollPaper from "../../assets/scroll-paper.png";
 import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
 import { GUILD_RECORDS_TRANSITION_EVENT } from "../SceneTransitionOverlay";
 import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
@@ -744,36 +745,39 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             aria-labelledby="pf-effects-title"
             aria-describedby="pf-effects-intro pf-effects-description"
             tabIndex={-1}
+            style={{ "--scroll-ratio": scrollPaper.width / scrollPaper.height } as CSSProperties}
           >
-            <h2 id="pf-effects-title">A message from Calisa</h2>
-            <div className="pf-effects-letter">
-              <p className="pf-effects-salutation">Salutations!</p>
-              <p id="pf-effects-intro">I hope you find this well, though I must offer you a warning.</p>
-              <p id="pf-effects-description">
-                This place is a bit old, so be cautious of <strong>flashing or flickering lights</strong> and{" "}
-                <strong>subtle movements</strong>, particularly if you are sensitive to motion. I care for your
-                well-being and have taken precautionary measures to inform you before entering this place.
+            <div className="pf-effects-scroll">
+              <h2 id="pf-effects-title">A message from Calisa</h2>
+              <div className="pf-effects-letter">
+                <p className="pf-effects-salutation">Salutations!</p>
+                <p id="pf-effects-intro">I hope you find this well, though I must offer you a warning.</p>
+                <p id="pf-effects-description">
+                  This place is a bit old, so be cautious of <strong>flashing or flickering lights</strong> and{" "}
+                  <strong>subtle movements</strong>, particularly if you are sensitive to motion. I care for your
+                  well-being and have taken precautionary measures to inform you before entering this place.
+                </p>
+                <p>
+                  If you have acknowledged my warnings and still wish to proceed, you have the free will to choose what
+                  is most comfortable for you.
+                </p>
+              </div>
+              <div className="pf-effects-actions">
+                <button ref={enableEffectsRef} type="button" onClick={() => chooseEffects(true)}>
+                  Enter with visual effects
+                </button>
+                <button ref={disableFlickerRef} type="button" onClick={() => chooseEffects(false)}>
+                  Enter without flickering
+                </button>
+              </div>
+              <p className="pf-effects-signoff">
+                <span>Sincerely,</span>
+                <span className="pf-effects-signature">Calisa Aphelion</span>
               </p>
-              <p>
-                If you have acknowledged my warnings and still wish to proceed, you have the free will to choose what
-                is most comfortable for you.
+              <p className="pf-effects-ps">
+                <em>P.S. Both choices enter the archive. Preferences can be changed at any time. :)</em>
               </p>
             </div>
-            <div className="pf-effects-actions">
-              <button ref={enableEffectsRef} type="button" onClick={() => chooseEffects(true)}>
-                Enter with visual effects
-              </button>
-              <button ref={disableFlickerRef} type="button" onClick={() => chooseEffects(false)}>
-                Enter without flickering
-              </button>
-            </div>
-            <p className="pf-effects-signoff">
-              <span>Sincerely,</span>
-              <span className="pf-effects-signature">Calisa Aphelion</span>
-            </p>
-            <p className="pf-effects-ps">
-              <em>P.S. Both choices enter the archive. Preferences can be changed at any time. :)</em>
-            </p>
           </div>
         </div>
       )}
