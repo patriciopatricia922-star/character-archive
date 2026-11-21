@@ -29,50 +29,103 @@
 .guildLedgerVolume {
   /* Height reserved at the foot of every page for the navigation bar. */
   --gl-nav-band: 48px;
-  --gl-open-book-scale: 0.5;
-  --gl-book-open-duration: 820ms;
-  --gl-book-close-duration: 720ms;
-  --gl-book-open-ease: cubic-bezier(0.22, 0.68, 0.18, 1);
-  --gl-book-close-ease: cubic-bezier(0.4, 0, 0.16, 1);
+  /* Footprint of the open book. Perspective is derived from it so the cover swing looks the same at every size. */
+  --gl-book-width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+  --gl-perspective-ratio: 2.1;
+  /* Boards overhang the paper; the edge and board depth are the visible thickness of the volume. */
+  --gl-overhang: 7px;
+  --gl-edge-depth: 8px;
+  --gl-board-depth: 4px;
+  /* Width of the gutter between the two pages; the hinge axis runs through its centre. */
+  --gl-gutter: clamp(14px, 1.65vw, 22px);
+  /* Keep the two durations in sync with BOOK_OPEN_DURATION / BOOK_CLOSE_DURATION in GuildRecordsBook.tsx. */
+  --gl-book-open-duration: 1100ms;
+  --gl-book-close-duration: 950ms;
+  --gl-book-open-ease: cubic-bezier(0.5, 0.02, 0.2, 1);
+  --gl-book-close-ease: cubic-bezier(0.42, 0.02, 0.22, 1);
   position: relative;
-  width: min(92vw, 1380px, calc((100svh - 240px) * 1.65));
+  width: var(--gl-book-width);
   max-height: calc(100svh - 240px);
   aspect-ratio: 1.65;
-  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  transform: translateX(-25%) translateY(0) rotateX(1.5deg) rotateZ(-0.35deg);
   transform-style: preserve-3d;
-  perspective: 2200px;
+  perspective: calc(var(--gl-perspective-ratio) * var(--gl-book-width));
   perspective-origin: 50% 50%;
   transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
 }
 
 .guildLedgerVolume[data-book-state="opening"],
 .guildLedgerVolume[data-book-state="open"] {
-  --gl-open-book-scale: 1;
-  transform: rotateX(1deg);
+  transform: translateX(0%) translateY(0) rotateX(1deg) rotateZ(0deg);
 }
 
 .guildLedgerVolume[data-book-state="closing"] {
-  --gl-open-book-scale: 0.5;
-  transform: translateX(-25%) rotateX(1.5deg) rotateZ(-0.35deg);
+  transform: translateX(-25%) translateY(0) rotateX(1.5deg) rotateZ(-0.35deg);
   transition-duration: var(--gl-book-close-duration);
   transition-timing-function: var(--gl-book-close-ease);
 }
 
+/*
+ * The volume's fixed half: back board + page block. They belong to the right-hand
+ * side in every state (the front cover is what travels), so the closed book has
+ * real thickness: a stack of page edges and a leather back board under the cover.
+ * When the book is open, the cover lands flat on the left as the left board.
+ */
 .guildLedgerBackCover,
 .guildLedgerPageBlock {
   position: absolute;
-  top: -8px;
-  bottom: -13px;
-  left: -1%;
-  width: 102%;
-  visibility: hidden;
+  left: 50%;
   pointer-events: none;
+}
+
+.guildLedgerLeftBlock {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 50%;
+  bottom: calc((var(--gl-overhang) - 2px) * -1);
+  width: calc(50% + var(--gl-overhang) - 2px);
+  border: 1px solid rgba(89, 61, 35, 0.78);
+  border-radius: 6px 0 0 8px;
+  /* mirror of the right page block: fore-edge lines on the left, tail lines along the foot,
+     and a shadowed hinge side so it reads as one block with the right-hand pages */
+  background:
+    repeating-linear-gradient(
+        90deg,
+        rgba(97, 72, 43, 0.38) 0 1px,
+        transparent 1px 3px
+      )
+      left / var(--gl-edge-depth) 100% no-repeat,
+    repeating-linear-gradient(
+        180deg,
+        rgba(97, 72, 43, 0.38) 0 1px,
+        transparent 1px 3px
+      )
+      bottom / 100% var(--gl-edge-depth) no-repeat,
+    linear-gradient(270deg, #b79f70 0%, #eadab2 12%, #ddc99b 100%);
+  box-shadow:
+    0 5px 9px rgba(0, 0, 0, 0.34),
+    inset 0 -3px 5px rgba(81, 52, 28, 0.3),
+    inset 3px 0 5px rgba(81, 52, 28, 0.26);
+  pointer-events: none;
+  /* Hinged on the spine: the block, the left page and the cover turn as one leaf. */
+  transform: translateZ(-9px) rotateY(0deg);
+  transform-origin: right center;
+  backface-visibility: hidden;
+  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
 }
 
 .guildLedgerBackCover {
   z-index: 0;
+  top: calc(var(--gl-overhang) * -1);
+  bottom: calc(
+    (var(--gl-overhang) + var(--gl-edge-depth) + var(--gl-board-depth)) * -1
+  );
+  width: calc(
+    50% + var(--gl-overhang) + var(--gl-edge-depth) + var(--gl-board-depth)
+  );
   border: 1px solid rgba(38, 19, 9, 0.84);
-  border-radius: 5px 10px 11px 6px;
+  border-radius: 3px 10px 11px 4px;
   background-image:
     linear-gradient(135deg, rgba(28, 12, 5, 0.38), rgba(15, 8, 5, 0.5)),
     url("../../assets/old-book-leather.jpg");
@@ -80,83 +133,82 @@
   background-size: cover;
   box-shadow:
     0 24px 42px rgba(0, 0, 0, 0.48),
+    0 4px 8px rgba(0, 0, 0, 0.4),
     inset 0 0 0 1px rgba(215, 164, 100, 0.22);
-  transform: translateZ(-18px) scaleX(var(--gl-open-book-scale));
-  transform-origin: right center;
-  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
+  transform: translateZ(-18px);
 }
 
 .guildLedgerPageBlock {
   z-index: 1;
-  top: 5px;
-  bottom: -12px;
-  border: 1px solid rgba(38, 19, 9, 0.78);
-  border-radius: 4px 8px 9px 5px;
+  top: 0;
+  bottom: calc((var(--gl-overhang) + var(--gl-edge-depth)) * -1);
+  width: calc(50% + var(--gl-overhang) + var(--gl-edge-depth));
+  border: 1px solid rgba(89, 61, 35, 0.78);
+  border-radius: 0 6px 8px 0;
+  /* fore-edge lines on the right, tail-edge lines along the foot, paper beneath */
   background:
-    linear-gradient(180deg, rgba(24, 11, 5, 0.16), rgba(13, 7, 4, 0.3)),
-    url("../../assets/old-book-leather.jpg") center / cover;
+    repeating-linear-gradient(
+        90deg,
+        rgba(97, 72, 43, 0.38) 0 1px,
+        transparent 1px 3px
+      )
+      right / var(--gl-edge-depth) 100% no-repeat,
+    repeating-linear-gradient(
+        180deg,
+        rgba(97, 72, 43, 0.38) 0 1px,
+        transparent 1px 3px
+      )
+      bottom / 100% var(--gl-edge-depth) no-repeat,
+    linear-gradient(90deg, #b79f70 0%, #eadab2 12%, #ddc99b 100%);
   box-shadow:
-    0 3px 0 rgba(26, 13, 7, 0.92),
-    0 6px 0 rgba(65, 36, 20, 0.9),
-    0 10px 14px rgba(0, 0, 0, 0.38),
-    inset 0 0 0 1px rgba(215, 164, 100, 0.18);
-  transform: translateZ(-10px) scaleX(var(--gl-open-book-scale));
-  transform-origin: right center;
-  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
-}
-
-.guildLedgerPageBlock::before {
-  position: absolute;
-  inset: 3px 3px -6px;
-  border: 1px solid rgba(38, 19, 9, 0.68);
-  border-radius: 3px 7px 8px 4px;
-  background:
-    linear-gradient(180deg, rgba(29, 14, 7, 0.22), rgba(14, 7, 4, 0.42)),
-    url("../../assets/old-book-leather.jpg") center / cover;
-  box-shadow:
-    0 4px 0 rgba(30, 15, 8, 0.92),
-    0 8px 0 rgba(56, 31, 17, 0.88);
-  content: "";
-  transform: translateZ(-1px);
-}
-
-.guildLedgerVolume[data-book-state="opening"] .guildLedgerBackCover,
-.guildLedgerVolume[data-book-state="open"] .guildLedgerBackCover,
-.guildLedgerVolume[data-book-state="closing"] .guildLedgerBackCover,
-.guildLedgerVolume[data-book-state="opening"] .guildLedgerPageBlock,
-.guildLedgerVolume[data-book-state="open"] .guildLedgerPageBlock,
-.guildLedgerVolume[data-book-state="closing"] .guildLedgerPageBlock {
-  visibility: visible;
-}
-
-.guildLedgerVolume[data-book-state="closing"] .guildLedgerBackCover,
-.guildLedgerVolume[data-book-state="closing"] .guildLedgerPageBlock {
-  transition-duration: var(--gl-book-close-duration);
-  transition-timing-function: var(--gl-book-close-ease);
+    0 5px 9px rgba(0, 0, 0, 0.34),
+    inset 0 -3px 5px rgba(81, 52, 28, 0.3),
+    inset -3px 0 5px rgba(81, 52, 28, 0.26);
+  transform: translateZ(-9px);
 }
 
 .guildLedgerInterior {
   position: absolute;
   z-index: 3;
   inset: 0;
-  opacity: 0;
   pointer-events: none;
   transform: translateZ(0);
+  /* No opacity on the interior: it would flatten the 3D context the left page turns in. */
   transform-style: preserve-3d;
   visibility: hidden;
 }
 
 .guildLedgerVolume[data-book-state="opening"] .guildLedgerInterior,
 .guildLedgerVolume[data-book-state="open"] .guildLedgerInterior {
-  opacity: 1;
   pointer-events: auto;
   visibility: visible;
 }
 
+/* The interior stays visible for the whole closing swing and is only released once the
+   cover has landed (data-book-state="closed"). It is inert, so nothing is clickable meanwhile. */
 .guildLedgerVolume[data-book-state="closing"] .guildLedgerInterior {
-  opacity: 0;
   pointer-events: none;
-  visibility: hidden;
+  visibility: visible;
+}
+
+/* The right page, gutter and single mobile page fade in with the cover lift on opening.
+   On closing they stay fully opaque until the cover covers them. */
+.guildLedgerPaper--right,
+.guildLedgerGutter,
+.guildLedgerSpreadMobile {
+  opacity: 0;
+}
+
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerPaper--right,
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerGutter,
+.guildLedgerVolume[data-book-state="opening"] .guildLedgerSpreadMobile,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerPaper--right,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerGutter,
+.guildLedgerVolume[data-book-state="open"] .guildLedgerSpreadMobile,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerPaper--right,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerGutter,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerSpreadMobile {
+  opacity: 1;
 }
 
 .guildLedgerSpread {
@@ -171,7 +223,7 @@
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(14px, 1.65vw, 22px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) var(--gl-gutter) minmax(0, 1fr);
   overflow: visible;
   transform-style: preserve-3d;
 }
@@ -202,6 +254,39 @@
   grid-column: 1;
   border-radius: 5px 0 0 5px;
   filter: drop-shadow(-3px 4px 5px rgba(0, 0, 0, 0.22));
+  /* The left page is pasted to the inside of the cover: it turns about the spine with it.
+     Closed = folded over onto the right (back face hidden); open = flat on the left. */
+  transform: rotateY(0deg);
+  transform-origin: calc(100% + var(--gl-gutter) / 2) 50%;
+  backface-visibility: hidden;
+  transition: transform var(--gl-book-open-duration) var(--gl-book-open-ease);
+}
+
+.guildLedgerVolume[data-book-state="closed"] .guildLedgerPaper--left,
+.guildLedgerVolume[data-book-state="closed"] .guildLedgerLeftBlock {
+  transition: none;
+}
+
+.guildLedgerVolume[data-book-state="closed"] .guildLedgerPaper--left {
+  transform: rotateY(180deg);
+}
+
+.guildLedgerVolume[data-book-state="closed"] .guildLedgerLeftBlock {
+  transform: translateZ(-9px) rotateY(180deg);
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerPaper--left,
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerLeftBlock {
+  transition-duration: var(--gl-book-close-duration);
+  transition-timing-function: var(--gl-book-close-ease);
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerPaper--left {
+  transform: rotateY(180deg);
+}
+
+.guildLedgerVolume[data-book-state="closing"] .guildLedgerLeftBlock {
+  transform: translateZ(-9px) rotateY(180deg);
 }
 
 .guildLedgerPaper--right {
@@ -943,11 +1028,13 @@ a.guildLedgerAttachment:hover {
 .guildLedgerCover {
   position: absolute;
   z-index: 12;
-  top: 0;
+  top: calc(var(--gl-overhang) * -1);
   left: 50%;
   display: flex;
-  width: 50%;
-  height: 100%;
+  width: calc(50% + var(--gl-overhang));
+  height: calc(100% + var(--gl-overhang) * 2);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1007,6 +1094,27 @@ a.guildLedgerAttachment:hover {
   transform: rotateY(180deg) translateZ(1px);
   backface-visibility: hidden;
   pointer-events: none;
+}
+
+/* pasted endpaper inside the board; the hinge (spine) side is the right edge of this face */
+.guildLedgerCoverBack::before {
+  position: absolute;
+  inset: clamp(12px, 1.5vw, 18px);
+  border-radius: 2px 5px 5px 2px;
+  background: url("../../assets/weathered-paper.png") center / cover;
+  box-shadow:
+    inset 0 0 22px rgba(84, 55, 30, 0.35),
+    0 0 0 1px rgba(30, 15, 8, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+  content: "";
+}
+
+.guildLedgerCoverBack::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.38), transparent 16%);
+  content: "";
 }
 
 .guildLedgerCoverBorder {
@@ -1080,8 +1188,8 @@ a.guildLedgerAttachment:hover {
 .guildLedgerSpine {
   position: absolute;
   z-index: 11;
-  top: 0;
-  bottom: 0;
+  top: calc(var(--gl-overhang) * -1);
+  bottom: calc(var(--gl-overhang) * -1);
   left: 50%;
   width: clamp(10px, 1.1vw, 16px);
   border-right: 1px solid rgba(22, 10, 5, 0.72);
@@ -1099,7 +1207,8 @@ a.guildLedgerAttachment:hover {
 
 .guildLedgerVolume[data-book-state="opening"] .guildLedgerCover,
 .guildLedgerVolume[data-book-state="open"] .guildLedgerCover {
-  transform: translateZ(4px) rotateY(-135deg);
+  /* swings a full 180deg and lands flat, behind the left page, as the left board */
+  transform: translateZ(-18px) rotateY(-180deg);
   will-change: transform;
 }
 
@@ -1147,7 +1256,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerVolume[data-book-state="closed"]:hover .guildLedgerCover {
-    transform: translateZ(10px) rotateY(-12deg);
+    transform: translateZ(10px) rotateY(-14deg);
   }
 
   .guildLedgerCover:hover {
@@ -1196,7 +1305,8 @@ a.guildLedgerAttachment:hover {
 @media (max-height: 640px) and (min-width: 641px) {
   .guildLedgerVolume {
     --gl-nav-band: 42px;
-    width: min(92vw, 700px, calc((100svh - 180px) * 1.65));
+    --gl-book-width: min(92vw, 700px, calc((100svh - 180px) * 1.65));
+    width: var(--gl-book-width);
     max-height: none;
   }
 
@@ -1233,7 +1343,13 @@ a.guildLedgerAttachment:hover {
   .guildLedgerVolume {
     /* nav row plus the Close ledger link stacked above it */
     --gl-nav-band: 68px;
-    width: min(88vw, 440px);
+    /* single page: the whole book is the "right-hand" half, hinged at its left edge */
+    --gl-book-width: min(88vw, 440px);
+    --gl-perspective-ratio: 3.2;
+    --gl-overhang: 6px;
+    --gl-edge-depth: 6px;
+    --gl-board-depth: 3px;
+    width: var(--gl-book-width);
     max-height: none;
     aspect-ratio: 0.72;
     transform: rotateX(1deg);
@@ -1242,19 +1358,29 @@ a.guildLedgerAttachment:hover {
   .guildLedgerVolume[data-book-state="opening"],
   .guildLedgerVolume[data-book-state="open"],
   .guildLedgerVolume[data-book-state="closing"] {
-    --gl-open-book-scale: 1;
     transform: rotateX(1deg);
-  }
-
-  .guildLedgerVolume {
-    --gl-open-book-scale: 1;
   }
 
   .guildLedgerBackCover,
   .guildLedgerPageBlock {
     left: 0;
-    width: 100%;
+  }
+
+  /* single page: there is no left-hand block */
+  .guildLedgerLeftBlock {
+    display: none;
+  }
+
+  .guildLedgerBackCover {
+    width: calc(
+      100% + var(--gl-overhang) + var(--gl-edge-depth) + var(--gl-board-depth)
+    );
     border-radius: 6px 10px 11px 6px;
+  }
+
+  .guildLedgerPageBlock {
+    width: calc(100% + var(--gl-overhang) + var(--gl-edge-depth));
+    border-radius: 3px 8px 9px 3px;
   }
 
   .guildLedgerSpreadDesktop {
@@ -1447,14 +1573,15 @@ a.guildLedgerAttachment:hover {
 
   .guildLedgerCover {
     left: 0;
-    width: 100%;
+    width: calc(100% + var(--gl-overhang));
     border-radius: 6px 10px 11px 6px;
     transform-origin: left center;
   }
 
+  /* lands off to the left of the page (clipped by the page), like a cover laid open on a phone */
   .guildLedgerVolume[data-book-state="opening"] .guildLedgerCover,
   .guildLedgerVolume[data-book-state="open"] .guildLedgerCover {
-    transform: translateZ(4px) rotateY(-135deg);
+    transform: translateZ(-18px) rotateY(-180deg);
   }
 
   .guildLedgerVolume[data-book-state="closing"] .guildLedgerCover {
@@ -1507,59 +1634,58 @@ a.guildLedgerAttachment:hover {
   }
 }
 
-/* Book open/close staging (fixes 2, 3 and 4) */
+/*
+ * Book open/close staging. Timings are fractions of the 1100ms open / 950ms close
+ * cover swing: the right page is revealed as the cover lifts, the left page only
+ * once the cover is past vertical, and on close the pages stay put until the
+ * cover has swung back over them.
+ */
 @media (prefers-reduced-motion: no-preference) {
-  /* pages: appear as the cover passes, fade out late on close */
-  .guildLedgerInterior {
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 200ms ease,
-      visibility 0s linear 200ms;
+  /* Right page / gutter: revealed as the cover lifts. They snap off only once closed
+     (the interior is hidden by then and the cover already lies over them). */
+  .guildLedgerPaper--right,
+  .guildLedgerGutter,
+  .guildLedgerSpreadMobile {
+    transition: none;
   }
-  .guildLedgerVolume[data-book-state="opening"] .guildLedgerInterior,
-  .guildLedgerVolume[data-book-state="open"] .guildLedgerInterior {
-    opacity: 1;
-    visibility: visible;
-    transition:
-      opacity 380ms ease 280ms,
-      visibility 0s;
-  }
-  .guildLedgerVolume[data-book-state="closing"] .guildLedgerInterior {
-    opacity: 0;
-    visibility: visible;
-    transition:
-      opacity 260ms ease 320ms,
-      visibility 0s linear 720ms;
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerPaper--right,
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerGutter,
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerSpreadMobile,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerPaper--right,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerGutter,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerSpreadMobile {
+    transition: opacity 520ms ease 260ms;
   }
 
-  /* back slab: fade instead of toggling visibility */
-  .guildLedgerBackCover,
-  .guildLedgerPageBlock {
-    visibility: visible;
+  /* The left page and block are not faded at all: they turn with the cover. */
+
+  /* ribbon and navigation appear once the book has settled, leave first on close */
+  .guildLedgerControls,
+  .guildLedgerRibbon {
     opacity: 0;
-    transition:
-      transform var(--gl-book-open-duration) var(--gl-book-open-ease),
-      opacity 240ms ease;
+    transition: opacity 120ms ease;
   }
-  .guildLedgerVolume[data-book-state="opening"] .guildLedgerBackCover,
-  .guildLedgerVolume[data-book-state="open"] .guildLedgerBackCover,
-  .guildLedgerVolume[data-book-state="opening"] .guildLedgerPageBlock,
-  .guildLedgerVolume[data-book-state="open"] .guildLedgerPageBlock {
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerControls,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerRibbon {
     opacity: 1;
-  }
-  .guildLedgerVolume[data-book-state="closing"] .guildLedgerBackCover,
-  .guildLedgerVolume[data-book-state="closing"] .guildLedgerPageBlock {
-    opacity: 0;
-    transition:
-      transform var(--gl-book-close-duration) var(--gl-book-close-ease),
-      opacity 200ms ease 520ms;
+    transition: opacity 320ms ease 80ms;
   }
 
-  /* spine returns as the cover lands */
+  /* spine strip hands over to the gutter as the cover lifts, returns as it lands */
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerSpine,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerSpine {
+    transition: opacity 360ms ease 320ms;
+  }
   .guildLedgerVolume[data-book-state="closing"] .guildLedgerSpine {
     opacity: 1;
-    transition: opacity 180ms ease 540ms;
+    transition: opacity 180ms ease 620ms;
+  }
+}
+
+/* touch: immediate press feedback, since there is no hover peek */
+@media (hover: none) {
+  .guildLedgerVolume[data-book-state="closed"] .guildLedgerCover:active {
+    transform: translateZ(8px) rotateY(-10deg);
   }
 }
 
@@ -1567,6 +1693,10 @@ a.guildLedgerAttachment:hover {
   .guildLedgerVolume,
   .guildLedgerBackCover,
   .guildLedgerPageBlock,
+  .guildLedgerLeftBlock,
+  .guildLedgerPaper,
+  .guildLedgerGutter,
+  .guildLedgerSpreadMobile,
   .guildLedgerInterior,
   .guildLedgerTurnLeaf,
   .guildLedgerCover,
@@ -1596,6 +1726,10 @@ a.guildLedgerAttachment:hover {
 
 .guildLedgerVolume[data-reduced-motion="true"] .guildLedgerBackCover,
 .guildLedgerVolume[data-reduced-motion="true"] .guildLedgerPageBlock,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerLeftBlock,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerPaper,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerGutter,
+.guildLedgerVolume[data-reduced-motion="true"] .guildLedgerSpreadMobile,
 .guildLedgerVolume[data-reduced-motion="true"] .guildLedgerInterior,
 .guildLedgerVolume[data-reduced-motion="true"] .guildLedgerTurnLeaf,
 .guildLedgerVolume[data-reduced-motion="true"] .guildLedgerCover,

@@ -44,10 +44,12 @@ type GuildRecordsBookProps = {
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
-// const BOOK_OPEN_DURATION = 820; <- before
-// const BOOK_CLOSE_DURATION = 720; <- before
-const BOOK_OPEN_DURATION = 900;  
-const BOOK_CLOSE_DURATION = 800;
+// Must match --gl-book-open-duration / --gl-book-close-duration in GuildLedger.css.
+// The cover's transitionend normally completes the transition; the timeout is only
+// a fallback, so it carries a small margin and can never cut the swing short.
+const BOOK_OPEN_DURATION = 1100;
+const BOOK_CLOSE_DURATION = 950;
+const BOOK_TRANSITION_FALLBACK_MARGIN = 150;
 
 function isNonEmpty(value: string | undefined): value is string {
   return Boolean(value?.trim());
@@ -988,7 +990,7 @@ export default function GuildRecordsBook({
 
     bookTransitionTimeout.current = window.setTimeout(
       () => finishBookTransition("opening"),
-      BOOK_OPEN_DURATION,
+      BOOK_OPEN_DURATION + BOOK_TRANSITION_FALLBACK_MARGIN,
     );
   }, [bookState, finishBookTransition, reducedMotion, setBookMuffled]);
 
@@ -1022,7 +1024,7 @@ export default function GuildRecordsBook({
 
     bookTransitionTimeout.current = window.setTimeout(
       () => finishBookTransition("closing"),
-      BOOK_CLOSE_DURATION,
+      BOOK_CLOSE_DURATION + BOOK_TRANSITION_FALLBACK_MARGIN,
     );
   };
 
@@ -1131,6 +1133,7 @@ export default function GuildRecordsBook({
     >
       <div className="guildLedgerBackCover" aria-hidden="true" />
       <div className="guildLedgerPageBlock" aria-hidden="true" />
+      <div className="guildLedgerLeftBlock" aria-hidden="true" />
 
       <div
         id="guild-records-interior"
