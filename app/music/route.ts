@@ -1,11 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { cacheLife } from "next/cache";
 import { NextResponse } from "next/server";
 import { MUSIC_METADATA } from "../../data/musicTracks";
 
-// Lists /public/music when the app is built (or on every request in `next dev`), so new audio
-// files are picked up without touching the playback code.
-export const dynamic = "force-static";
+// Lists /public/music at build time, so new audio files are picked up on the next deploy without
+// touching the playback code. (`dynamic = "force-static"` is not allowed with cacheComponents, so
+// the listing is cached with "use cache" instead.)
 
 const AUDIO_EXTENSIONS = new Set([".mp3", ".ogg", ".oga", ".m4a", ".aac", ".wav", ".opus", ".webm"]);
 
@@ -15,7 +16,11 @@ function tidyTitle(stem: string) {
   return stem.replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export async function GET() {
+async function listTracks() {
+  "use cache";
+  // The file list only changes when a new build is deployed, so keep the build-time result.
+  cacheLife({ stale: 3600, revalidate: 31536000, expire: 31536000 });
+
   const directory = path.join(process.cwd(), "public", "music");
 
   let files: string[] = [];
@@ -44,5 +49,9 @@ export async function GET() {
     .sort((a, b) => a.order - b.order || a.file.localeCompare(b.file, undefined, { numeric: true }))
     .map(({ src, title, composer }) => ({ src, title, composer }));
 
-  return NextResponse.json(tracks);
+  return tracks;
+}
+
+export async function GET() {
+  return NextResponse.json(await listTracks());
 }
