@@ -1341,17 +1341,22 @@ a.guildLedgerAttachment:hover {
 
 @media (max-width: 640px) {
   .guildLedgerVolume {
-    /* nav row plus the Close ledger link stacked above it */
-    --gl-nav-band: 68px;
-    /* single page: the whole book is the "right-hand" half, hinged at its left edge */
-    --gl-book-width: min(88vw, 440px);
+    /* 44px touch row for prev/status/next, with the Close ledger link stacked above it */
+    --gl-nav-band: 88px;
+    /* single page: the whole book is the "right-hand" half, hinged at its left edge.
+       A taller, book-like page (0.66) gives the content room; the width is also capped by the
+       viewport height so the book never outgrows a short phone screen. */
+    --gl-book-width: min(88vw, 440px, calc((100svh - 170px) * 0.66));
     --gl-perspective-ratio: 3.2;
     --gl-overhang: 6px;
     --gl-edge-depth: 6px;
     --gl-board-depth: 3px;
+    /* labels and micro text: 11px floor for readability on small screens */
+    --gl-text-label: 0.6875rem;
+    --gl-text-micro: 0.6875rem;
     width: var(--gl-book-width);
     max-height: none;
-    aspect-ratio: 0.72;
+    aspect-ratio: 0.66;
     transform: rotateX(1deg);
   }
 
@@ -1402,12 +1407,33 @@ a.guildLedgerAttachment:hover {
 
   .guildLedgerPageContent--mobile {
     padding: clamp(24px, 6vw, 34px) clamp(22px, 7vw, 32px)
-      calc(88px - var(--gl-nav-band));
+      calc(104px - var(--gl-nav-band));
+    /* the page scrolls as one surface; swipes stay vertical and never chain to the document */
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+
+  /* the member list scrolls with the page instead of nesting a second scroll area */
+  .guildLedgerPageContent--mobile .guildLedgerMemberList {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .guildLedgerPageHeader {
     min-height: 16px;
     padding-bottom: 7px;
+  }
+
+  /* enlarge the hit area of the small "Guild index" link without changing the layout */
+  .guildLedgerIndexReturn {
+    position: relative;
+  }
+
+  .guildLedgerIndexReturn::after {
+    position: absolute;
+    inset: -12px -8px -10px;
+    content: "";
   }
 
   .guildLedgerFolio,
@@ -1446,7 +1472,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerMemberEntry {
-    min-height: 42px;
+    min-height: 48px;
   }
 
   .guildLedgerEntryName,
@@ -1548,27 +1574,40 @@ a.guildLedgerAttachment:hover {
     padding: 0 10px;
   }
 
-  .guildLedgerTurnButton,
-  .guildLedgerCloseButton {
-    min-height: 30px;
+  /* 44px touch targets for the folio controls */
+  .guildLedgerTurnButton {
+    min-width: 44px;
+    min-height: 44px;
     gap: 4px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .guildLedgerControlLabel {
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     letter-spacing: 0.08em;
   }
 
   .guildLedgerPageStatus {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
   }
 
   .guildLedgerCloseButton {
     position: absolute;
     right: 10px;
     bottom: calc(100% + 1px);
-    min-height: 24px;
+    min-height: 32px;
+    gap: 4px;
     font-size: var(--gl-text-label);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* extra hit area upwards and sideways only, so it never overlaps the Next folio target below */
+  .guildLedgerCloseButton::after {
+    position: absolute;
+    inset: -8px -10px 0;
+    content: "";
   }
 
   .guildLedgerCover {
@@ -1611,6 +1650,33 @@ a.guildLedgerAttachment:hover {
   }
 }
 
+/* Narrow phones: the text labels would shrink below a readable size, so the folio buttons
+   become large arrows. They keep their aria-labels, and the "n of N" status stays visible. */
+@media (max-width: 420px) {
+  .guildLedgerControlLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .guildLedgerTurnButton {
+    min-width: 52px;
+    justify-content: center;
+  }
+
+  .guildLedgerTurnButton:first-child {
+    justify-self: start;
+  }
+
+  .guildLedgerTurnButton > span[aria-hidden="true"] {
+    font-size: 2rem;
+  }
+}
+
 @media (max-width: 380px) {
   .guildLedgerControls {
     right: 4px;
@@ -1618,14 +1684,6 @@ a.guildLedgerAttachment:hover {
     gap: 3px;
     padding-right: 7px;
     padding-left: 7px;
-  }
-
-  .guildLedgerControlLabel {
-    font-size: 0.4375rem;
-  }
-
-  .guildLedgerTurnButton > span[aria-hidden="true"] {
-    font-size: 1.25rem;
   }
 
   .guildLedgerPageContent--mobile {
@@ -1686,6 +1744,27 @@ a.guildLedgerAttachment:hover {
 @media (hover: none) {
   .guildLedgerVolume[data-book-state="closed"] .guildLedgerCover:active {
     transform: translateZ(8px) rotateY(-10deg);
+    /* quick press response; the slow open-duration transition resumes for the swing itself */
+    transition:
+      transform 140ms ease-out,
+      box-shadow 280ms ease;
+  }
+}
+
+/*
+ * Phones held sideways: the two-page spread is kept, but the book is sized from the short
+ * viewport height instead of reserving desktop-sized margins, and touch targets stay usable.
+ * Limited to coarse pointers so short desktop windows are untouched.
+ */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) and (min-width: 641px) {
+  .guildLedgerVolume {
+    --gl-book-width: min(92vw, 780px, calc((100svh - 64px) * 1.65));
+    width: var(--gl-book-width);
+  }
+
+  .guildLedgerTurnButton,
+  .guildLedgerCloseButton {
+    min-height: 36px;
   }
 }
 
