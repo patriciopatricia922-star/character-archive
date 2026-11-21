@@ -1343,12 +1343,17 @@ a.guildLedgerAttachment:hover {
 
 @media (max-width: 640px) {
   .guildLedgerVolume {
-    /* 44px touch row for prev/status/next, with the Close ledger link stacked above it */
-    --gl-nav-band: 88px;
+    /* one 44px toolbar row (prev / status / next / close) above the torn bottom edge */
+    --gl-nav-band: 64px;
     /* single page: the whole book is the "right-hand" half, hinged at its left edge.
-       A taller, book-like page (0.66) gives the content room; the width is also capped by the
-       viewport height so the book never outgrows a short phone screen. */
-    --gl-book-width: min(88vw, 440px, calc((100svh - 170px) * 0.66));
+       The width follows the viewport width; the height uses the screen height that is
+       available (leaving room for the return link and the page-block depth) up to a
+       book-like 0.62 ratio, instead of a fixed ratio that left dead space above and below. */
+    --gl-book-width: min(88vw, 440px);
+    --gl-book-height: min(
+      max(calc(100svh - 140px), 340px),
+      calc(var(--gl-book-width) / 0.62)
+    );
     --gl-perspective-ratio: 3.2;
     --gl-overhang: 6px;
     --gl-edge-depth: 6px;
@@ -1357,8 +1362,9 @@ a.guildLedgerAttachment:hover {
     --gl-text-label: 0.6875rem;
     --gl-text-micro: 0.6875rem;
     width: var(--gl-book-width);
+    height: var(--gl-book-height);
     max-height: none;
-    aspect-ratio: 0.66;
+    aspect-ratio: auto;
     transform: rotateX(1deg);
   }
 
@@ -1409,7 +1415,7 @@ a.guildLedgerAttachment:hover {
 
   .guildLedgerPageContent--mobile {
     padding: clamp(24px, 6vw, 34px) clamp(22px, 7vw, 32px)
-      calc(104px - var(--gl-nav-band));
+      calc(84px - var(--gl-nav-band));
     /* the page scrolls as one surface; swipes stay vertical and never chain to the document */
     overscroll-behavior: contain;
     touch-action: pan-y;
@@ -1445,7 +1451,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerSectionLabel {
-    margin-top: 19px;
+    margin-top: 14px;
   }
 
   .guildLedgerPaper h2 {
@@ -1453,7 +1459,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerRule {
-    margin: 13px 0;
+    margin: 11px 0;
   }
 
   .guildLedgerLead,
@@ -1559,21 +1565,32 @@ a.guildLedgerAttachment:hover {
     border-radius: 6px 10px 11px 6px;
   }
 
+  /* the ribbon hangs just inside the leather spine instead of being hidden behind it */
   .guildLedgerRibbon {
     top: 0;
     bottom: 22%;
-    left: 0;
+    left: 15px;
     width: 7px;
     transform: translateX(0) translateZ(6px);
   }
 
+  /*
+   * One toolbar row: [prev] [n of N] [next] ........ [Close ledger]. A hairline separates it
+   * from the scrolling page, and it sits clear of the torn bottom edge of the paper.
+   */
   .guildLedgerControls {
-    right: 8px;
-    bottom: 7px;
-    left: 8px;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 6px;
-    padding: 0 10px;
+    right: 14px;
+    bottom: 12px;
+    left: 14px;
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    gap: 2px;
+    padding: 6px 2px 0;
+    border-top: 1px solid rgba(78, 53, 32, 0.22);
+  }
+
+  .guildLedgerTurnButton:first-child,
+  .guildLedgerTurnButton:nth-of-type(2) {
+    justify-self: auto;
   }
 
   /* 44px touch targets for the folio controls */
@@ -1595,21 +1612,26 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerCloseButton {
-    position: absolute;
-    right: 10px;
-    bottom: calc(100% + 1px);
-    min-height: 32px;
+    justify-self: end;
+    min-height: 44px;
     gap: 4px;
+    padding: 0 2px 0 10px;
+    /* the underline moves from the (now 44px-tall) box edge onto the text itself */
+    border-bottom: 0;
     font-size: var(--gl-text-label);
+    text-decoration: underline;
+    text-decoration-color: rgba(103, 63, 37, 0.42);
+    text-underline-offset: 5px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
 
-  /* extra hit area upwards and sideways only, so it never overlaps the Next folio target below */
-  .guildLedgerCloseButton::after {
-    position: absolute;
-    inset: -8px -10px 0;
-    content: "";
+  /* keep the leather spine as the visible binding of the page in every state: the single
+     page is otherwise a bare ragged sheet once the cover has swung off to the left */
+  .guildLedgerVolume[data-book-state="opening"] .guildLedgerSpine,
+  .guildLedgerVolume[data-book-state="open"] .guildLedgerSpine,
+  .guildLedgerVolume[data-book-state="closing"] .guildLedgerSpine {
+    opacity: 1;
   }
 
   .guildLedgerCover {
@@ -1656,7 +1678,7 @@ a.guildLedgerAttachment:hover {
    buttons become large arrows. The threshold is in rem, so a larger OS / browser text size
    switches to arrows sooner instead of letting labels collide. The buttons keep their
    aria-labels, and the "n of N" status stays visible. */
-@container guild-controls (max-width: 22rem) {
+@container guild-controls (max-width: 30rem) {
   .guildLedgerControlLabel {
     position: absolute;
     width: 1px;
@@ -1667,27 +1689,44 @@ a.guildLedgerAttachment:hover {
     white-space: nowrap;
   }
 
+  /* a visible, tappable 44px round button: the bare thin glyph was easy to miss */
   .guildLedgerTurnButton {
-    min-width: 52px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
     justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(103, 63, 37, 0.38);
+    border-radius: 50%;
+    background: rgba(255, 248, 226, 0.34);
   }
 
-  .guildLedgerTurnButton:first-child {
-    justify-self: start;
+  .guildLedgerTurnButton:disabled {
+    border-color: rgba(103, 63, 37, 0.16);
+    background: transparent;
+  }
+
+  .guildLedgerTurnButton:not(:disabled):active {
+    background: rgba(117, 78, 48, 0.16);
   }
 
   .guildLedgerTurnButton > span[aria-hidden="true"] {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+
+  .guildLedgerPageStatus {
+    padding-inline: 8px;
   }
 }
 
 @media (max-width: 380px) {
   .guildLedgerControls {
-    right: 4px;
-    left: 4px;
-    gap: 3px;
-    padding-right: 7px;
-    padding-left: 7px;
+    right: 12px;
+    left: 12px;
+    gap: 0;
+    padding-right: 0;
+    padding-left: 0;
   }
 
   .guildLedgerPageContent--mobile {

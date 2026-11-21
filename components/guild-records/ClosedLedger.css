@@ -784,10 +784,16 @@
 }
 
 @media (max-width: 640px) {
+  /* a readable 12px link with a 44px-tall tap target, kept clear of the book below */
   .guildRecordsReturnLink {
-    top: max(16px, env(safe-area-inset-top, 0px) + 8px);
+    top: max(8px, env(safe-area-inset-top, 0px));
     left: max(16px, env(safe-area-inset-left, 0px) + 8px);
-    font-size: 10px;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 0;
+    color: rgba(255, 253, 208, 0.86);
+    font-size: 12px;
   }
 
   .guildRecordsBookStage {
