@@ -44,8 +44,10 @@ type GuildRecordsBookProps = {
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
-const BOOK_OPEN_DURATION = 820;
-const BOOK_CLOSE_DURATION = 720;
+// const BOOK_OPEN_DURATION = 820; <- before
+// const BOOK_CLOSE_DURATION = 720; <- before
+const BOOK_OPEN_DURATION = 900;  
+const BOOK_CLOSE_DURATION = 800;
 
 function isNonEmpty(value: string | undefined): value is string {
   return Boolean(value?.trim());
