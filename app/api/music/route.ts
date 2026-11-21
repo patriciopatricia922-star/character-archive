@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { cacheLife } from "next/cache";
 import { NextResponse } from "next/server";
-import { MUSIC_METADATA } from "../../data/musicTracks";
+import { MUSIC_METADATA } from "../../../data/musicTracks";
 
 // Lists /public/music at build time, so new audio files are picked up on the next deploy without
 // touching the playback code. (`dynamic = "force-static"` is not allowed with cacheComponents, so
