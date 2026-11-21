@@ -3,6 +3,9 @@
   isolation: isolate;
   min-height: 100vh;
   min-height: 100svh;
+  /* the backdrop follows the dynamic viewport so no gap shows when browser toolbars collapse;
+     the book itself stays sized from svh so it never resizes while the toolbars move */
+  min-height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 34%, rgba(117, 75, 38, 0.2), transparent 43%),
@@ -96,6 +99,8 @@
   left: 0;
   display: grid;
   place-items: center;
+  /* keep the book clear of notches / rounded corners; insets are 0 where there are none */
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
   perspective: 2200px;
 }
 
@@ -787,7 +792,7 @@
 
   .guildRecordsBookStage {
     top: 8%;
-    bottom: 4%;
+    bottom: max(4%, env(safe-area-inset-bottom, 0px));
   }
 
   .guildRecordsBook {

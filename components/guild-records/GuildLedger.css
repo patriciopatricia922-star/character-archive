@@ -953,6 +953,8 @@ a.guildLedgerAttachment:hover {
   align-items: center;
   gap: clamp(8px, 1.3vw, 18px);
   padding: 0 clamp(14px, 3.6vw, 50px);
+  /* lets the folio buttons adapt to the room the bar actually has (see @container below) */
+  container: guild-controls / inline-size;
 }
 
 .guildLedgerTurnButton,
@@ -1650,9 +1652,11 @@ a.guildLedgerAttachment:hover {
   }
 }
 
-/* Narrow phones: the text labels would shrink below a readable size, so the folio buttons
-   become large arrows. They keep their aria-labels, and the "n of N" status stays visible. */
-@media (max-width: 420px) {
+/* When the navigation bar is too narrow for the text labels at a readable size, the folio
+   buttons become large arrows. The threshold is in rem, so a larger OS / browser text size
+   switches to arrows sooner instead of letting labels collide. The buttons keep their
+   aria-labels, and the "n of N" status stays visible. */
+@container guild-controls (max-width: 22rem) {
   .guildLedgerControlLabel {
     position: absolute;
     width: 1px;
@@ -1748,6 +1752,35 @@ a.guildLedgerAttachment:hover {
     transition:
       transform 140ms ease-out,
       box-shadow 280ms ease;
+  }
+}
+
+/*
+ * Touch devices wider than a phone (tablets, foldables, large phones in landscape): size the
+ * controls by input method rather than by width, keeping the two-page layout unchanged.
+ */
+@media (pointer: coarse) and (min-width: 641px) {
+  .guildLedgerTurnButton,
+  .guildLedgerCloseButton {
+    min-height: 44px;
+  }
+
+  .guildLedgerTurnButton {
+    min-width: 44px;
+  }
+
+  .guildLedgerIndexReturn {
+    position: relative;
+  }
+
+  .guildLedgerIndexReturn::after {
+    position: absolute;
+    inset: -12px -8px -10px;
+    content: "";
+  }
+
+  .guildLedgerMemberEntry {
+    min-height: 48px;
   }
 }
 
