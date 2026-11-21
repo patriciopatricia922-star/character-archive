@@ -629,10 +629,10 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
               isEntering={enteringBook}
             />
             <span className="pf-book-swipe-cue" aria-hidden="true">
-              {/* <svg viewBox="0 0 24 24" fill="none">
+              <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 20V4m-6 6 6-6 6 6" />
               </svg>
-              <span>Swipe up to enter</span> */}
+              <span>Swipe up to enter</span>
             </span>
           </div>
         )}
@@ -733,7 +733,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
                   <span className="pf-setting-copy">
                     <span className="pf-setting-label">Background music</span>
                     <span id="pf-setting-music-description" className="pf-setting-description">
-                      Play “Skye Cuillin” by Kevin MacLeod.
+                      Play the archive’s background soundtrack.
                     </span>
                   </span>
                   <input
