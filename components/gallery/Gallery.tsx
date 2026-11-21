@@ -745,22 +745,20 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             aria-describedby="pf-effects-intro pf-effects-description"
             tabIndex={-1}
           >
-            <p className="pf-effects-eyebrow">
-              <span>VISITOR NOTICE</span>
-              <span>ARCHIVE / 01</span>
-            </p>
-            <h2 id="pf-effects-title">Before you enter</h2>
-            <p id="pf-effects-intro" className="pf-effects-intro">
-              A brief note regarding the visual experience ahead.
-            </p>
-            <div className="pf-effects-warning">
-              <h3>Visual effects notice</h3>
+            <h2 id="pf-effects-title">A message from Calisa</h2>
+            <div className="pf-effects-letter">
+              <p className="pf-effects-salutation">Salutations!</p>
+              <p id="pf-effects-intro">I hope you find this well, though I must offer you a warning.</p>
               <p id="pf-effects-description">
-                This exhibition contains occasional spotlight flickering and subtle animated visual effects. These may
-                cause discomfort or trigger symptoms in individuals with photosensitivity or photosensitive epilepsy.
+                This place is a bit old, so be cautious of <strong>flashing or flickering lights</strong> and{" "}
+                <strong>subtle movements</strong>, particularly if you are sensitive to motion. I care for your
+                well-being and have taken precautionary measures to inform you before entering this place.
+              </p>
+              <p>
+                If you have acknowledged my warnings and still wish to proceed, you have the free will to choose what
+                is most comfortable for you.
               </p>
             </div>
-            <p className="pf-effects-question">How would you like to experience the archive?</p>
             <div className="pf-effects-actions">
               <button ref={enableEffectsRef} type="button" onClick={() => chooseEffects(true)}>
                 Enter with visual effects
@@ -769,7 +767,13 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
                 Enter without flickering
               </button>
             </div>
-            <p className="pf-effects-foot">Both choices enter the archive. Preferences can be changed at any time.</p>
+            <p className="pf-effects-signoff">
+              <span>Sincerely,</span>
+              <span className="pf-effects-signature">Calisa Aphelion</span>
+            </p>
+            <p className="pf-effects-ps">
+              <em>P.S. Both choices enter the archive. Preferences can be changed at any time. :)</em>
+            </p>
           </div>
         </div>
       )}
