@@ -118,17 +118,19 @@ export default function ClosedLedgerBook({
       <span className="guildRecordsCoverBorder" aria-hidden="true" />
       <span className="guildRecordsCoverInner" aria-hidden="true" />
       <span className="guildRecordsCoverContent" aria-hidden="true">
-        <span className="guildRecordsCoverKicker">Official archive</span>
-        <span className="guildRecordsInsignia">
-          <svg viewBox="0 0 64 64" focusable="false">
-            <path d="M32 12 47 32 32 52 17 32 32 12Z" />
-            <path d="M32 20v24M20 32h24" />
-            <circle cx="32" cy="32" r="4" />
-          </svg>
-        </span>
+        {!isLandingLink && <span className="guildRecordsCoverKicker">Official archive</span>}
+        {!isLandingLink && (
+          <span className="guildRecordsInsignia">
+            <svg viewBox="0 0 64 64" focusable="false">
+              <path d="M32 12 47 32 32 52 17 32 32 12Z" />
+              <path d="M32 20v24M20 32h24" />
+              <circle cx="32" cy="32" r="4" />
+            </svg>
+          </span>
+        )}
         <span className="guildRecordsCoverTitle">Guild Records</span>
-        <span className="guildRecordsCoverRule" />
-        <span className="guildRecordsCoverSubtitle">Registration ledger</span>
+        {!isLandingLink && <span className="guildRecordsCoverRule" />}
+        {!isLandingLink && <span className="guildRecordsCoverSubtitle">Registration ledger</span>}
       </span>
     </>
   );
