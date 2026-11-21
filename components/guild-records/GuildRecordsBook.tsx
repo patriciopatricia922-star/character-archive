@@ -359,6 +359,10 @@ function LedgerPage({
                 No member records have been filed for this guild.
               </p>
             )}
+            <p className="guildLedgerPageColophon">
+              {guild.name}
+              <span>Member register</span>
+            </p>
           </div>
         </article>
       );
@@ -529,6 +533,10 @@ function LedgerPage({
                 No registration details are currently filed.
               </p>
             )}
+            <p className="guildLedgerPageColophon">
+              {guild.name}
+              <span>Registration record</span>
+            </p>
           </div>
         </article>
       );
@@ -701,6 +709,9 @@ function LedgerPage({
                 </section>
               )}
             </>
+          )}
+          {rightHasContent && (
+            <p className="guildLedgerPageColophon">{member.fullName}</p>
           )}
         </div>
       </article>
