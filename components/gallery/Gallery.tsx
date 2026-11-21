@@ -124,7 +124,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const showVisitorNotice = preferenceLoaded && !hasEntered;
   const entered = preferenceLoaded && hasEntered;
   const experienceBlocked = !preferenceLoaded || !hasEntered;
-  const { requestStart, setGalleryActive } = useAmbientMusic();
+  const { requestStart, setGalleryActive, isPlaying, togglePlayback } = useAmbientMusic();
 
   const step = useCallback(
     (d: number) => setIndex((i) => Math.max(0, Math.min(n - 1, i + d))),
@@ -631,8 +631,8 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
             <span className="pf-book-swipe-cue" aria-hidden="true">
               {/* <svg viewBox="0 0 24 24" fill="none">
                 <path d="M12 20V4m-6 6 6-6 6 6" />
-              </svg> */}
-              {/* <span>Swipe up to enter</span> */}
+              </svg>
+              <span>Swipe up to enter</span> */}
             </span>
           </div>
         )}
@@ -729,6 +729,23 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
                     <span className="pf-setting-switch" aria-hidden="true" />
                   </label>
                 ))}
+                <label className="pf-setting">
+                  <span className="pf-setting-copy">
+                    <span className="pf-setting-label">Background music</span>
+                    <span id="pf-setting-music-description" className="pf-setting-description">
+                      Play “Skye Cuillin” by Kevin MacLeod.
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    aria-label="Background music"
+                    aria-describedby="pf-setting-music-description"
+                    checked={isPlaying}
+                    onChange={() => togglePlayback()}
+                  />
+                  <span className="pf-setting-switch" aria-hidden="true" />
+                </label>
               </div>
             </div>
           )}

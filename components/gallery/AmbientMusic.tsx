@@ -9,13 +9,15 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
 type AmbientMusicControls = {
   setBookMuffled: (muffled: boolean) => void;
   setGalleryActive: (active: boolean) => void;
   requestStart: () => void;
+  isPlaying: boolean;
+  togglePlayback: () => void;
 };
 
 type MusicPreference = {
@@ -33,6 +35,17 @@ const MUSIC_SOURCE = "/music/Skye%20Cuillin.mp3";
 const CLEAR_FILTER_FREQUENCY = 20000;
 const MUFFLED_FILTER_FREQUENCY = 2200;
 const FILTER_TRANSITION_SECONDS = 0.9;
+const TRACK_TITLE = "Skye Cuillin";
+const TRACK_COMPOSER = "Kevin MacLeod";
+// Per-bar resting height plus the range and tempo of the subtle idle motion.
+const WAVE_BARS = [
+  { rest: 0.3, lo: 0.22, hi: 0.62, dur: 1.5, delay: -0.3 },
+  { rest: 0.55, lo: 0.35, hi: 0.9, dur: 1.2, delay: -0.8 },
+  { rest: 0.85, lo: 0.5, hi: 1, dur: 1.7, delay: -0.1 },
+  { rest: 0.45, lo: 0.28, hi: 0.78, dur: 1.35, delay: -1.0 },
+  { rest: 0.7, lo: 0.4, hi: 0.95, dur: 1.6, delay: -0.5 },
+  { rest: 0.35, lo: 0.2, hi: 0.66, dur: 1.25, delay: -0.9 },
+] as const;
 const ambientMusicContext = createContext<AmbientMusicControls | null>(null);
 
 function isMusicPreference(value: unknown): value is MusicPreference {
@@ -174,11 +187,6 @@ export default function AmbientMusicProvider({
     }
   }, [preferenceLoaded, savePreference, startPlayback]);
 
-  const controls = useMemo(
-    () => ({ setBookMuffled, setGalleryActive, requestStart }),
-    [requestStart],
-  );
-
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       if (audioRef.current) audioRef.current.volume = 0.16;
@@ -252,7 +260,7 @@ export default function AmbientMusicProvider({
     savePreference();
   };
 
-  const togglePlayback = () => {
+  const togglePlayback = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -267,7 +275,12 @@ export default function AmbientMusicProvider({
     playbackIntent.current = true;
     savePreference();
     void startPlayback();
-  };
+  }, [savePreference, startPlayback]);
+
+  const controls = useMemo(
+    () => ({ setBookMuffled, setGalleryActive, requestStart, isPlaying, togglePlayback }),
+    [isPlaying, requestStart, togglePlayback],
+  );
 
   const player = (
     <>
@@ -283,25 +296,34 @@ export default function AmbientMusicProvider({
         onTimeUpdate={handleTimeUpdate}
       />
       {active && (
-        <button
-          className="pf-music-toggle"
-          type="button"
-          aria-label={isPlaying ? "Pause background music" : "Play background music"}
-          aria-pressed={isPlaying}
-          title={isPlaying ? "Pause background music" : "Play background music"}
-          onClick={togglePlayback}
+        <div
+          className="pf-now-playing"
+          role="group"
+          aria-label="Now playing"
+          data-playing={isPlaying}
         >
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-            {isPlaying ? (
-              <path d="M3 5c1.4 1.1 1.4 2.9 0 4" />
-            ) : (
-              <path d="m3 3 18 18" />
-            )}
-          </svg>
-        </button>
+          <span className="pf-np-wave" aria-hidden="true">
+            {WAVE_BARS.map((bar, i) => (
+              <span
+                key={i}
+                style={
+                  {
+                    "--rest": bar.rest,
+                    "--lo": bar.lo,
+                    "--hi": bar.hi,
+                    "--dur": `${bar.dur}s`,
+                    "--delay": `${bar.delay}s`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </span>
+          <span className="pf-np-text">
+            <span className="pf-np-title">{TRACK_TITLE}</span>
+            <span className="pf-np-composer">{TRACK_COMPOSER}</span>
+          </span>
+          <span className="sr-only">{isPlaying ? "Playing" : "Paused"}</span>
+        </div>
       )}
     </>
   );
