@@ -1,24 +1,35 @@
 /*
- * Typography tokens, scoped to the Guild Records book only.
- * - Sizes are rem-based clamp() ranges (max <= ~2.5x min) so they respect user/OS text scaling.
- * - One serif for reading + display, one sans for small-caps labels, one script for handwritten marginalia.
+ * Typography + colour tokens, scoped to the Guild Records book only.
+ * - One serif (EB Garamond, loaded in GuildRecordsBook.tsx) for headings, names and reading text.
+ * - One sans (Geist) for folios, labels, metadata and navigation.
+ * - Sizes are rem-based clamp() ranges so they respect user/OS text scaling.
+ * - Text colours come from five tokens; every one clears 4.5:1 on the parchment.
  */
 .guildLedgerVolume {
   --gl-font-serif:
-    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia,
-    serif;
+    var(--font-gl-serif), "EB Garamond", "Iowan Old Style", "Palatino Linotype",
+    Palatino, Georgia, serif;
   --gl-font-sans:
     var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --gl-font-script: "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive;
+  /* Marginalia now sets in the book serif (italic). Point this at a script face to restore handwriting. */
+  --gl-font-script: var(--gl-font-serif);
 
-  --gl-text-display: clamp(1.5rem, 0.25rem + 2.5vw, 2.4rem);
-  --gl-text-title: clamp(0.9375rem, 0.75rem + 0.45vw, 1.125rem);
-  --gl-text-body: clamp(0.875rem, 0.72rem + 0.38vw, 1.0625rem);
-  --gl-text-body-sm: clamp(0.8125rem, 0.7rem + 0.3vw, 0.9375rem);
-  --gl-text-note: clamp(0.9375rem, 0.8rem + 0.4vw, 1.0625rem);
-  --gl-text-caption: 0.75rem;
-  --gl-text-label: clamp(0.625rem, 0.55rem + 0.2vw, 0.6875rem);
-  --gl-text-micro: 0.625rem;
+  --gl-text-display: clamp(1.75rem, 0.9rem + 1.9vw, 2.5rem);
+  --gl-text-title: clamp(1.0625rem, 0.97rem + 0.3vw, 1.25rem);
+  --gl-text-body: clamp(1.0625rem, 0.95rem + 0.33vw, 1.1875rem);
+  --gl-text-body-sm: clamp(1rem, 0.92rem + 0.26vw, 1.125rem);
+  --gl-text-note: var(--gl-text-body-sm);
+  --gl-text-caption: 0.8125rem;
+  --gl-text-label: clamp(0.75rem, 0.71rem + 0.12vw, 0.8125rem);
+  --gl-text-micro: var(--gl-text-label);
+
+  /* ink on parchment: headings > reading text > metadata, plus one oxblood accent */
+  --gl-ink: #2b1e15;
+  --gl-ink-soft: #3d2c1f;
+  --gl-muted: #5f4630;
+  --gl-accent: #74351d;
+  --gl-accent-hover: #55260f;
+  --gl-rule: rgba(66, 44, 26, 0.3);
 
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -247,7 +258,7 @@
   box-shadow:
     inset 0 0 0 1px rgba(92, 63, 35, 0.16),
     inset 0 0 28px rgba(84, 55, 30, 0.1);
-  color: #34271e;
+  color: var(--gl-ink-soft);
 }
 
 .guildLedgerPaper--left {
@@ -354,7 +365,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(78, 53, 32, 0.22);
+  border-bottom: 1px solid var(--gl-rule);
   padding-bottom: 8px;
 }
 
@@ -366,13 +377,14 @@
 .guildLedgerMemberEntryNumber,
 .guildLedgerMemberEntryReference,
 .guildLedgerFields dt,
+.guildLedgerSummary dt,
 .guildLedgerAmendmentDate {
-  color: #71553c;
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-size: var(--gl-text-label);
   font-variant-numeric: lining-nums tabular-nums;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -386,7 +398,7 @@
   border: 0;
   border-bottom: 1px solid rgba(104, 67, 41, 0.35);
   background: transparent;
-  color: #8d4426;
+  color: var(--gl-accent);
   cursor: pointer;
   font-size: var(--gl-text-label);
   padding: 3px 0 2px;
@@ -397,19 +409,19 @@
 
 .guildLedgerSectionLabel {
   margin: clamp(20px, 2.4vw, 34px) 0 7px;
-  color: #8e4728;
+  color: var(--gl-accent);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
 }
 
 .guildLedgerPaper h2 {
   margin: 0;
-  color: #38281d;
+  color: var(--gl-ink);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-display);
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.12;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
@@ -420,10 +432,10 @@
 
 .guildLedgerRule {
   display: block;
-  width: min(100%, 220px);
+  width: min(100%, 180px);
   height: 1px;
   margin: clamp(14px, 1.8vw, 24px) 0;
-  background: linear-gradient(90deg, rgba(124, 76, 43, 0.72), transparent);
+  background: linear-gradient(90deg, var(--gl-accent), transparent);
 }
 
 .guildLedgerLead,
@@ -431,21 +443,22 @@
 .guildLedgerEmptyNote,
 .guildLedgerContextLine {
   margin: 0;
-  color: #49382b;
+  color: var(--gl-ink-soft);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-body);
-  line-height: 1.6;
+  line-height: 1.55;
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
 .guildLedgerLead {
-  max-width: 31ch;
+  max-width: 30ch;
+  font-style: italic;
 }
 
 .guildLedgerEmptyNote {
   margin-top: clamp(22px, 3vw, 42px);
-  color: #70543b;
+  color: var(--gl-muted);
   font-size: var(--gl-text-body-sm);
   font-style: italic;
 }
@@ -455,10 +468,10 @@
   justify-content: space-between;
   gap: 10px;
   margin: auto 0 0;
-  border-top: 1px solid rgba(78, 53, 32, 0.22);
+  border-top: 1px solid var(--gl-rule);
   padding-top: 10px;
   font-size: var(--gl-text-micro);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
 }
 
 .guildLedgerPageColophon span {
@@ -491,8 +504,32 @@
   list-style: none;
 }
 
+/*
+ * Register of guilds: an emblem-led grid on four tracks. Every entry spans two tracks, so
+ * rows pair up and a lone last entry is centred. Exactly three guilds form a triangle:
+ * the first sits alone as the apex, the other two form the base. Any other count simply
+ * wraps into centred pairs, so additional guilds need no layout change.
+ */
 .guildLedgerGuildList {
-  gap: 2px;
+  --gl-emblem-size: clamp(3rem, calc(var(--gl-book-width) * 0.06), 6rem);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(6px, 1vw, 18px) clamp(6px, 1vw, 14px);
+  margin-block: auto;
+  padding-block: clamp(6px, 1vw, 14px) 0;
+}
+
+.guildLedgerGuildList > li {
+  display: flex;
+  grid-column: span 2;
+}
+
+.guildLedgerGuildList > li:first-child:nth-last-child(3) {
+  grid-column: 2 / span 2;
+}
+
+.guildLedgerGuildList > li:last-child:nth-child(odd):not(:nth-child(3)) {
+  grid-column: 2 / span 2;
 }
 
 .guildLedgerGuildEntry,
@@ -502,7 +539,7 @@
   align-items: center;
   gap: clamp(10px, 1.3vw, 18px);
   border: 0;
-  border-bottom: 1px solid rgba(87, 60, 38, 0.27);
+  border-bottom: 1px solid var(--gl-rule);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -514,18 +551,90 @@
 }
 
 .guildLedgerGuildEntry {
-  min-height: 88px;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
+  min-height: 0;
+  border-bottom: 0;
+  border-radius: 4px;
+  padding: 6px 8px 8px;
+  text-align: center;
+}
+
+/* Index spread: centred composition on both pages */
+.guildLedgerPaper--index .guildLedgerPageContent {
+  text-align: center;
+}
+
+.guildLedgerPaper--index .guildLedgerPageHeader {
+  text-align: left;
+}
+
+.guildLedgerPaper--index .guildLedgerSectionLabel {
+  margin-top: clamp(14px, 1.7vw, 24px);
+}
+
+.guildLedgerPaper--index .guildLedgerRule {
+  margin-block: clamp(10px, 1.3vw, 18px);
+  margin-inline: auto;
+  background: linear-gradient(90deg, transparent, var(--gl-accent), transparent);
+}
+
+.guildLedgerPaper--index .guildLedgerLead {
+  margin-inline: auto;
+}
+
+/* Left index page: the title block sits on the optical centre between folio and colophon */
+.guildLedgerPaper--index.guildLedgerPaper--left .guildLedgerSectionLabel {
+  margin-top: auto;
+  padding-top: clamp(20px, 2.4vw, 34px);
+}
+
+.guildLedgerSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: clamp(22px, 3vw, 40px) 0 clamp(20px, 2.4vw, 32px);
+  border-block: 1px solid var(--gl-rule);
+}
+
+.guildLedgerSummary > div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(12px, 1.5vw, 18px) 8px;
+}
+
+.guildLedgerSummary > div + div {
+  border-left: 1px solid var(--gl-rule);
+}
+
+.guildLedgerSummary dt {
+  margin: 0;
+}
+
+.guildLedgerSummary dd {
+  margin: 0;
+  color: var(--gl-ink);
+  font-family: var(--gl-font-serif);
+  font-size: clamp(1.625rem, 1rem + 1.4vw, 2.25rem);
+  font-variant-numeric: lining-nums;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .guildLedgerEmblem {
   display: grid;
-  width: 72px;
-  height: 72px;
-  flex: 0 0 72px;
+  width: var(--gl-emblem-size);
+  height: var(--gl-emblem-size);
+  flex: 0 0 auto;
   place-items: center;
-  color: #84512e;
+  /* headroom for emblems that are scaled up via emblemScale */
+  margin-bottom: calc(var(--gl-emblem-size) * 0.1 + 3px);
+  color: var(--gl-accent);
   font-family: var(--gl-font-serif);
-  font-size: 17px;
+  font-size: clamp(1.25rem, calc(var(--gl-emblem-size) * 0.32), 2rem);
   letter-spacing: 0.06em;
   overflow: visible;
 }
@@ -540,31 +649,41 @@
 .guildLedgerEntryText {
   display: flex;
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  gap: 2px;
 }
 
 .guildLedgerEntryName,
 .guildLedgerMemberEntryName {
-  color: #3e2d20;
+  color: var(--gl-ink);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-title);
-  line-height: 1.3;
+  font-weight: 500;
+  line-height: 1.2;
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
+/* record counts read as plain sentence-case metadata, distinct from the capitalised labels */
 .guildLedgerEntryMeta {
-  font-size: var(--gl-text-micro);
-  letter-spacing: 0.12em;
+  font-size: var(--gl-text-caption);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
+/* the triangular layout carries its own affordance: hover/focus underlines the name */
 .guildLedgerEntryFolio {
-  color: #9e572f;
-  font-family: var(--gl-font-serif);
-  font-size: 1.5rem;
-  line-height: 1;
+  display: none;
+}
+
+.guildLedgerGuildEntry:focus-visible .guildLedgerEntryName {
+  text-decoration: underline;
+  text-decoration-color: var(--gl-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 
 .guildLedgerMemberList {
@@ -579,7 +698,7 @@
 }
 
 .guildLedgerMemberEntryNumber {
-  flex: 0 0 24px;
+  flex: 0 0 26px;
   font-size: var(--gl-text-micro);
 }
 
@@ -635,7 +754,7 @@
   align-items: center;
   gap: 0.6em;
   margin: clamp(16px, 2vw, 28px) 0 clamp(14px, 1.8vw, 24px);
-  color: rgba(115, 76, 44, 0.78);
+  color: var(--gl-muted);
   font-family: var(--gl-font-serif);
   font-size: clamp(28px, 3.2vw, 45px);
   letter-spacing: 0.09em;
@@ -650,10 +769,10 @@
 .guildLedgerSubheading,
 .guildLedgerSupplementSection h3 {
   margin: 22px 0 8px;
-  color: #74472e;
+  color: var(--gl-accent);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-title);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -668,19 +787,19 @@
   display: grid;
   grid-template-columns: minmax(88px, 0.8fr) minmax(0, 1.5fr);
   gap: 10px;
-  border-bottom: 1px solid rgba(88, 59, 36, 0.23);
+  border-bottom: 1px solid var(--gl-rule);
   padding-bottom: 7px;
 }
 
 .guildLedgerFields dt {
   margin: 0;
   font-size: var(--gl-text-label);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
 }
 
 .guildLedgerFields dd {
   margin: 0;
-  color: #3e2f23;
+  color: var(--gl-ink);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-body-sm);
   line-height: 1.5;
@@ -696,17 +815,24 @@
 .guildLedgerReferenceNote {
   margin: 18px 0 0 auto;
   max-width: 85%;
-  color: #76503b;
+  color: var(--gl-muted);
   font-family: var(--gl-font-script);
   font-size: var(--gl-text-note);
   font-synthesis: none;
   line-height: 1.5;
   overflow-wrap: anywhere;
-  transform: rotate(-1deg);
+}
+
+.guildLedgerHandnote,
+.guildLedgerReferenceNote,
+.guildLedgerPortraitMissing,
+.guildLedgerPortraitCaption,
+.guildLedgerAmendmentList .guildLedgerAmendmentInitials {
+  font-style: italic;
 }
 
 .guildLedgerPortraitHeading {
-  font-size: clamp(1.25rem, 0.3rem + 2vw, 1.875rem) !important;
+  font-size: clamp(1.5rem, 0.6rem + 1.9vw, 2.125rem) !important;
 }
 
 .guildLedgerPortrait {
@@ -733,7 +859,7 @@
   right: 0;
   bottom: 6px;
   left: 0;
-  color: #80634a;
+  color: var(--gl-muted);
   font-family: var(--gl-font-script);
   font-size: var(--gl-text-note);
   font-synthesis: none;
@@ -742,7 +868,7 @@
 
 .guildLedgerPortraitAffiliation {
   margin: 15px 0 0;
-  color: #70513a;
+  color: var(--gl-muted);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-body-sm);
   font-style: italic;
@@ -758,7 +884,7 @@
 
 .guildLedgerContextLine {
   margin-bottom: 16px;
-  color: #755438;
+  color: var(--gl-muted);
   font-size: var(--gl-text-body-sm);
   font-style: italic;
 }
@@ -773,13 +899,13 @@
 }
 
 .guildLedgerAmendmentList li {
-  border-bottom: 1px solid rgba(88, 59, 36, 0.27);
+  border-bottom: 1px solid var(--gl-rule);
   padding: 0 0 12px;
 }
 
 .guildLedgerAmendmentList p {
   margin: 0;
-  color: #433126;
+  color: var(--gl-ink-soft);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-body);
   line-height: 1.55;
@@ -794,7 +920,7 @@
 
 .guildLedgerAmendmentList .guildLedgerAmendmentInitials {
   margin-top: 6px;
-  color: #84543b;
+  color: var(--gl-muted);
   font-family: var(--gl-font-script);
   font-size: var(--gl-text-note);
   font-synthesis: none;
@@ -807,7 +933,7 @@
 
 .guildLedgerSupplementSection h3 {
   margin-top: 0;
-  border-bottom: 1px solid rgba(88, 59, 36, 0.24);
+  border-bottom: 1px solid var(--gl-rule);
   padding-bottom: 7px;
 }
 
@@ -818,7 +944,7 @@
 .guildLedgerAnnotationList li {
   position: relative;
   padding-left: 16px;
-  color: #4b3729;
+  color: var(--gl-ink-soft);
   font-family: var(--gl-font-serif);
   font-size: var(--gl-text-body-sm);
   font-style: italic;
@@ -830,7 +956,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  color: #a0522b;
+  color: var(--gl-accent);
   content: "—";
 }
 
@@ -843,13 +969,13 @@
   flex-direction: column;
   gap: 4px;
   border-left: 1px solid rgba(125, 75, 43, 0.5);
-  color: #483427;
+  color: var(--gl-ink-soft);
   padding: 2px 0 2px 12px;
   text-decoration: none;
 }
 
 a.guildLedgerAttachment:hover {
-  color: #8c4729;
+  color: var(--gl-accent-hover);
 }
 
 .guildLedgerAttachmentTitle {
@@ -859,7 +985,7 @@ a.guildLedgerAttachment:hover {
 }
 
 .guildLedgerAttachmentDescription {
-  color: #73583f;
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-size: var(--gl-text-caption);
   line-height: 1.45;
@@ -965,7 +1091,7 @@ a.guildLedgerAttachment:hover {
   gap: 8px;
   border: 0;
   background: transparent;
-  color: #5b3e29;
+  color: var(--gl-ink-soft);
   cursor: pointer;
   font-family: var(--gl-font-sans);
   font-size: var(--gl-text-label);
@@ -985,7 +1111,7 @@ a.guildLedgerAttachment:hover {
 }
 
 .guildLedgerTurnButton > span[aria-hidden="true"] {
-  color: #9a512c;
+  color: var(--gl-accent);
   font-family: var(--gl-font-serif);
   font-size: 1.5rem;
 }
@@ -994,16 +1120,16 @@ a.guildLedgerAttachment:hover {
   font-family: var(--gl-font-sans);
   font-size: var(--gl-text-label);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .guildLedgerPageStatus {
-  color: #795a3f;
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-size: var(--gl-text-label);
   font-variant-numeric: lining-nums tabular-nums;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
   white-space: nowrap;
 }
 
@@ -1014,16 +1140,16 @@ a.guildLedgerAttachment:hover {
 .guildLedgerCloseButton {
   justify-self: end;
   border-bottom: 1px solid rgba(103, 63, 37, 0.42);
-  color: #854326;
+  color: var(--gl-accent);
   font-size: var(--gl-text-label);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .guildLedgerTurnButton:disabled,
 .guildLedgerCloseButton:disabled {
-  color: rgba(74, 54, 38, 0.42);
+  color: rgba(74, 54, 38, 0.5);
   cursor: default;
 }
 
@@ -1251,6 +1377,12 @@ a.guildLedgerAttachment:hover {
   outline-offset: 5px;
 }
 
+/* the orange ring is for the leather cover; on parchment use the accent so it stays visible */
+.guildLedgerPaper :focus-visible,
+.guildLedgerControls :focus-visible {
+  outline-color: var(--gl-accent);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .guildLedgerVolume[data-book-state="closed"]:hover {
     transform: translateX(-25%) translateY(-4px) rotateX(1.5deg)
@@ -1273,13 +1405,13 @@ a.guildLedgerAttachment:hover {
   .guildLedgerIndexReturn:hover,
   .guildLedgerCloseButton:not(:disabled):hover,
   .guildLedgerTurnButton:not(:disabled):hover {
-    color: #a14f29;
+    color: var(--gl-accent-hover);
   }
 
   .guildLedgerGuildEntry:hover,
   .guildLedgerMemberEntry:hover {
     background: rgba(117, 78, 48, 0.08);
-    color: #8c4729;
+    color: var(--gl-accent-hover);
   }
 }
 
@@ -1304,6 +1436,39 @@ a.guildLedgerAttachment:hover {
   }
 }
 
+/* Short laptop windows: the book is height-limited, so the contents page tightens its rhythm
+   to keep a three-guild triangle on one page without scrolling. */
+@media (max-height: 860px) and (min-width: 641px) {
+  .guildLedgerPaper--index .guildLedgerPageContent {
+    padding-top: 26px;
+  }
+
+  .guildLedgerPaper--index .guildLedgerSectionLabel {
+    margin-top: 14px;
+  }
+
+  .guildLedgerPaper--index .guildLedgerRule {
+    margin-block: 12px;
+  }
+
+  .guildLedgerGuildList {
+    gap: 2px 6px;
+    padding-block: 0;
+  }
+
+  .guildLedgerGuildEntry {
+    padding-block: 4px;
+  }
+
+  .guildLedgerEntryName {
+    font-size: 1rem;
+  }
+
+  .guildLedgerEmblem {
+    margin-bottom: 4px;
+  }
+}
+
 @media (max-height: 640px) and (min-width: 641px) {
   .guildLedgerVolume {
     --gl-nav-band: 42px;
@@ -1320,12 +1485,21 @@ a.guildLedgerAttachment:hover {
     --gl-mark-size: 3.5rem;
   }
 
+  .guildLedgerGuildList {
+    --gl-emblem-size: clamp(3rem, calc(var(--gl-book-width) * 0.075), 5rem);
+    gap: 10px 8px;
+  }
+
+  .guildLedgerSummary {
+    margin-block: 14px;
+  }
+
   .guildLedgerSectionLabel {
     margin-top: 14px;
   }
 
   .guildLedgerPaper h2 {
-    font-size: clamp(1.3125rem, 0.5rem + 2vw, 1.75rem);
+    font-size: clamp(1.5rem, 0.7rem + 1.9vw, 1.875rem);
   }
 
   .guildLedgerRule {
@@ -1358,9 +1532,9 @@ a.guildLedgerAttachment:hover {
     --gl-overhang: 6px;
     --gl-edge-depth: 6px;
     --gl-board-depth: 3px;
-    /* labels and micro text: 11px floor for readability on small screens */
-    --gl-text-label: 0.6875rem;
-    --gl-text-micro: 0.6875rem;
+    /* labels and micro text: 12px floor for readability on small screens */
+    --gl-text-label: 0.75rem;
+    --gl-text-micro: 0.75rem;
     width: var(--gl-book-width);
     height: var(--gl-book-height);
     max-height: none;
@@ -1455,7 +1629,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerPaper h2 {
-    font-size: clamp(1.5625rem, 0.9rem + 2.8vw, 2rem);
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 2.125rem);
   }
 
   .guildLedgerRule {
@@ -1470,13 +1644,7 @@ a.guildLedgerAttachment:hover {
   }
 
   .guildLedgerGuildEntry {
-    min-height: 68px;
-  }
-
-  .guildLedgerEmblem {
-    width: 54px;
-    height: 54px;
-    flex-basis: 54px;
+    padding-inline: 4px;
   }
 
   .guildLedgerMemberEntry {
@@ -1585,7 +1753,7 @@ a.guildLedgerAttachment:hover {
     grid-template-columns: auto auto auto minmax(0, 1fr);
     gap: 2px;
     padding: 6px 2px 0;
-    border-top: 1px solid rgba(78, 53, 32, 0.22);
+    border-top: 1px solid var(--gl-rule);
   }
 
   .guildLedgerTurnButton:first-child,

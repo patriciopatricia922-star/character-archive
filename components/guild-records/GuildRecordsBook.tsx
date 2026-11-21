@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import type { TransitionEvent } from "react";
+import { EB_Garamond } from "next/font/google";
 import { useRouter } from "next/navigation";
 import {
   buildGuildLedgerSpreads,
@@ -41,6 +42,14 @@ type GuildRecordsBookProps = {
   guilds: readonly GuildRecord[];
   entryToken?: string;
 };
+
+// Serif for headings, guild names and reading text; the sans (Geist) stays on labels and navigation.
+const ledgerSerif = EB_Garamond({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-gl-serif",
+});
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
@@ -124,6 +133,21 @@ function LedgerPage({
             <p className="guildLedgerLead">
               A directory of the guilds entered in this archive.
             </p>
+            <dl className="guildLedgerSummary">
+              <div>
+                <dt>Guilds entered</dt>
+                <dd>{guildsForIndex(spread).length}</dd>
+              </div>
+              <div>
+                <dt>Member records</dt>
+                <dd>
+                  {guildsForIndex(spread).reduce(
+                    (total, guild) => total + guild.members.length,
+                    0,
+                  )}
+                </dd>
+              </div>
+            </dl>
             <p className="guildLedgerPageColophon">
               Guild Records
               <span>Registry index</span>
@@ -1126,7 +1150,7 @@ export default function GuildRecordsBook({
 
   return (
     <div
-      className="guildLedgerVolume"
+      className={`guildLedgerVolume ${ledgerSerif.variable}`}
       data-book-state={bookState}
       data-reduced-motion={reducedMotion}
       data-turn-direction={turn?.direction ?? "none"}
