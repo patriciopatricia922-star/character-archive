@@ -56,13 +56,13 @@
 
 .pf-dust-layer{display:none;position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .pf-stage[data-zoomed="false"][data-entered="true"][data-dust="true"] .pf-dust-layer{display:block}
-.pf-dust{position:absolute;top:var(--y);left:var(--x);width:var(--size);height:var(--size);border-radius:50%;background:var(--cream);opacity:0;animation:pf-dust-fall var(--duration) linear var(--delay) infinite}
+.pf-dust{position:absolute;top:var(--y);left:var(--x);width:var(--size);height:var(--size);border-radius:50%;background:var(--cream);box-shadow:0 0 3px 1px rgba(255,253,208,.4),0 0 8px 2px rgba(255,174,66,.18);opacity:0;animation:pf-dust-fall var(--duration) linear var(--delay) infinite}
 .pf-stage[data-page-hidden="true"] .pf-dust,.pf-stage[data-effects-dialog="true"] .pf-dust{animation-play-state:paused}
 
 @keyframes pf-dust-fall{
   0%{opacity:0;transform:translate3d(0,-5vh,0)}
-  12%{opacity:var(--alpha)}
-  86%{opacity:var(--alpha)}
+  12%{opacity:min(.55,calc(var(--alpha) * 2.2))}
+  86%{opacity:min(.55,calc(var(--alpha) * 2.2))}
   100%{opacity:0;transform:translate3d(var(--drift),108svh,0)}
 }
 
