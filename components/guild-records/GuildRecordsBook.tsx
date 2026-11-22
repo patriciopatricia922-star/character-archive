@@ -55,9 +55,7 @@ const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
 const PAGE_FLIP_SOUND_SRC = "/effects/page-flip.mp3";
 const PAGE_FLIP_VOLUME = 0.9;
-// The file opens with ~1s of silence; start playback at the audible part so the
-// sound lands with the leaf (the turn itself only lasts PAGE_TURN_DURATION).
-const PAGE_FLIP_START_OFFSET = 1;
+const PAGE_FLIP_START_OFFSET = 0;
 // Must match --gl-book-open-duration / --gl-book-close-duration in GuildLedger.css.
 // The cover's transitionend normally completes the transition; the timeout is only
 // a fallback, so it carries a small margin and can never cut the swing short.
