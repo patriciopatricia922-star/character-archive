@@ -496,6 +496,18 @@ function LedgerPage({
                   <dd>{member.registeredTitle}</dd>
                 </div>
               )}
+              {isNonEmpty(member.occupation) && (
+                <div>
+                  <dt>Occupation</dt>
+                  <dd>{member.occupation}</dd>
+                </div>
+              )}
+              {isNonEmpty(member.origin) && (
+                <div>
+                  <dt>Origin</dt>
+                  <dd>{member.origin}</dd>
+                </div>
+              )}
               <div>
                 <dt>Guild affiliation</dt>
                 <dd>{guild.name}</dd>
@@ -577,6 +589,18 @@ function LedgerPage({
               <div>
                 <dt>Registered title</dt>
                 <dd>{member.registeredTitle}</dd>
+              </div>
+            )}
+            {isNonEmpty(member.occupation) && (
+              <div>
+                <dt>Occupation</dt>
+                <dd>{member.occupation}</dd>
+              </div>
+            )}
+            {isNonEmpty(member.origin) && (
+              <div>
+                <dt>Origin</dt>
+                <dd>{member.origin}</dd>
               </div>
             )}
             <div>
@@ -771,6 +795,8 @@ function guildsForIndex(spread: GuildLedgerSpread): readonly GuildRecord[] {
 function memberIsEmpty(member: GuildMemberRecord): boolean {
   return (
     !isNonEmpty(member.registeredTitle) &&
+    !isNonEmpty(member.occupation) &&
+    !isNonEmpty(member.origin) &&
     !isNonEmpty(member.rank) &&
     !isNonEmpty(member.registrationDate) &&
     !isNonEmpty(member.referenceId) &&

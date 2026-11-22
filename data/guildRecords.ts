@@ -1,6 +1,7 @@
 import guild1Emblem from "../assets/guild-1.png";
 import guild2Emblem from "../assets/guild-2.png";
 import guild3Emblem from "../assets/guild-3.png";
+import caelPortrait from "../assets/Cael-Rendered.png";
 
 export type ArchiveImage = {
   src: string;
@@ -30,6 +31,8 @@ export type GuildMemberRecord = {
   fullName: string;
   portrait?: MemberPortrait;
   registeredTitle?: string;
+  occupation?: string;
+  origin?: string;
   rank?: string;
   registrationDate?: string;
   referenceId?: string;
@@ -158,7 +161,20 @@ export const guildRecords: readonly GuildRecord[] = [
       src: guild1Emblem.src,
       alt: "Windborne Vesperwind guild emblem",
     },
-    members: [],
+    members: [
+      {
+        id: "cael",
+        fullName: "Cael",
+        portrait: {
+          src: caelPortrait.src,
+          alt: "Portrait of Cael",
+          fit: "cover",
+        },
+        occupation: "Guild librarian",
+        origin: "Genasi Air",
+        rank: "Guild leader",
+      },
+    ],
   },
   {
     id: "guild-2",
