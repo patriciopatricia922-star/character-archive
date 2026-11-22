@@ -53,7 +53,7 @@ const ledgerSerif = EB_Garamond({
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
-const PAGE_FLIP_SOUND_SRC = "../effects/page-flip.mp3";
+const PAGE_FLIP_SOUND_SRC = "/effects/page-flip.mp3";
 const PAGE_FLIP_VOLUME = 0.9;
 // The file opens with ~1s of silence; start playback at the audible part so the
 // sound lands with the leaf (the turn itself only lasts PAGE_TURN_DURATION).
@@ -980,6 +980,12 @@ export default function GuildRecordsBook({
       const audio = new Audio(PAGE_FLIP_SOUND_SRC);
       audio.volume = PAGE_FLIP_VOLUME;
       audio.preload = "auto";
+      audio.addEventListener("error", () => {
+        console.warn(
+          "The Guild Records page-flip effect could not be loaded:",
+          audio.error?.message ?? PAGE_FLIP_SOUND_SRC,
+        );
+      });
       pageFlipAudio.current = audio;
     }
     return pageFlipAudio.current;
@@ -988,10 +994,17 @@ export default function GuildRecordsBook({
   const playPageFlip = useCallback(() => {
     try {
       const audio = getPageFlipAudio();
-      audio.currentTime = PAGE_FLIP_START_OFFSET;
-      void audio.play().catch(() => {});
-    } catch {
-      // Sound is decorative; never let it break page turning.
+      audio.pause();
+      try {
+        audio.currentTime = PAGE_FLIP_START_OFFSET;
+      } catch {
+        // Metadata may not be seekable yet; playback is still attempted from the source.
+      }
+      void audio.play().catch((error: unknown) => {
+        console.warn("The Guild Records page-flip effect could not play.", error);
+      });
+    } catch (error) {
+      console.warn("The Guild Records page-flip effect could not start.", error);
     }
   }, [getPageFlipAudio]);
 
@@ -1121,6 +1134,7 @@ export default function GuildRecordsBook({
 
       turnRef.current = nextTurn;
       setTurn(nextTurn);
+      playPageFlip();
 
       if (
         reducedMotion ||
@@ -1130,7 +1144,6 @@ export default function GuildRecordsBook({
         return;
       }
 
-      playPageFlip();
       pageTurnFrame.current = window.requestAnimationFrame(() => {
         setTurn((current) =>
           current?.id === nextTurn.id
