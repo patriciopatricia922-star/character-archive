@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties, PointerEvent, TouchEvent, WheelEvent } from "react";
 import Image from "next/image";
@@ -8,8 +8,8 @@ import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
 import scrollPaper from "../../assets/scroll-paper.png";
 import {
+  placePortraitsCenterOutward,
   portraits as defaultPortraits,
-  PRIMARY_PORTRAIT_ID,
   type PortraitData,
 } from "../../data/portraits";
 import { GUILD_RECORDS_TRANSITION_EVENT } from "../SceneTransitionOverlay";
@@ -96,13 +96,15 @@ const DUST_PARTICLES = [
 ] as const;
 
 export default function Gallery({ portraits = defaultPortraits, onSelect }: Props) {
-  const n = portraits.length;
-  const [index, setIndex] = useState(() => {
-    const primaryIndex = portraits.findIndex(
-      (portrait) => portrait.id === PRIMARY_PORTRAIT_ID || portrait.primary,
-    );
-    return primaryIndex >= 0 ? primaryIndex : Math.floor(n / 2);
-  });
+  const arrangedPortraits = useMemo(
+    () => placePortraitsCenterOutward(portraits),
+    [portraits],
+  );
+  const n = arrangedPortraits.length;
+  const [index, setIndex] = useState(() => Math.floor(n / 2));
+  useEffect(() => {
+    setIndex(Math.floor(n / 2));
+  }, [n]);
   const [hover, setHover] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [settings, setSettings] = useState<ExhibitionSettings>(DEFAULT_SETTINGS);
@@ -142,7 +144,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   const open = () => {
     setFlickering(false);
     setZoomed(true);
-    onSelect?.(portraits[index].id);
+    onSelect?.(arrangedPortraits[index].id);
   };
 
   const saveSettings = (nextSettings: ExhibitionSettings) => {
@@ -507,7 +509,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
   };
 
   const lit = zoomed ? index : hover ?? index;
-  const litId = portraits[lit].id;
+  const litId = arrangedPortraits[lit].id;
 
   return (
     <>
@@ -543,7 +545,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         <div className="pf-par-bg">
           <div className="pf-wall" style={{ transform: `translate3d(${-index * 14}px,0,0)` }} aria-hidden="true">
             {Array.from({ length: WALL_CELLS }, (_, c) => {
-              const p = portraits[c % n];
+              const p = arrangedPortraits[c % n];
               return (
                 <div
                   key={c}
@@ -584,7 +586,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         </div>
 
         <div className="pf-track">
-          {portraits.map((p, i) => {
+          {arrangedPortraits.map((p, i) => {
             const d = i - index;
             const a = Math.abs(d);
             const dim = Math.abs(i - lit);
@@ -624,7 +626,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
           })}
         </div>
 
-        <Dossier key={portraits[index].id} open={zoomed} portraitId={portraits[index].id} />
+        <Dossier key={arrangedPortraits[index].id} open={zoomed} portraitId={arrangedPortraits[index].id} />
 
         {!zoomed && (
           <div
@@ -647,7 +649,7 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
         )}
 
         <div className="pf-dots">
-          {portraits.map((p, i) => (
+          {arrangedPortraits.map((p, i) => (
             <button
               key={p.id}
               type="button"
