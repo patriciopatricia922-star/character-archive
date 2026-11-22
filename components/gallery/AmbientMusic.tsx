@@ -32,6 +32,8 @@ type Track = {
   composer?: string;
 };
 
+type LoopMode = "queue" | "track";
+
 type AudioGraph = {
   context: AudioContext;
   filter: BiquadFilterNode;
@@ -50,6 +52,7 @@ const BASE_VOLUME = 0.16;
 const FADE_OUT_SECONDS = 2;
 const FADE_IN_SECONDS = 1.6;
 const RESUME_FADE_SECONDS = 0.4;
+const SKIP_FADE_SECONDS = 0.35;
 const CLEAR_FILTER_FREQUENCY = 20000;
 const MUFFLED_FILTER_FREQUENCY = 2200;
 const FILTER_TRANSITION_SECONDS = 0.9;
@@ -91,6 +94,11 @@ function isTrack(value: unknown): value is Track {
   );
 }
 
+function formatClock(totalSeconds: number) {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 function sameSrc(a: string, b: string) {
   try {
     return decodeURI(a) === decodeURI(b);
@@ -125,11 +133,14 @@ export default function AmbientMusicProvider({
   const pendingAdvance = useRef(false);
   const fadingOut = useRef(false);
   const failedSkips = useRef(0);
+  const skipTimer = useRef<number | null>(null);
   const fadeFrame = useRef(0);
   const [prefsRead, setPrefsRead] = useState(false);
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [trackIndex, setTrackIndex] = useState(0);
   const [queueReady, setQueueReady] = useState(false);
+  const [progress, setProgress] = useState({ time: 0, duration: 0 });
+  const [loopMode, setLoopMode] = useState<LoopMode>("queue");
   const preferenceLoaded = prefsRead && queueReady;
   const [isPlaying, setIsPlaying] = useState(false);
   const [bookMuffled, setBookMuffled] = useState(false);
@@ -391,6 +402,7 @@ export default function AmbientMusicProvider({
       window.removeEventListener("pagehide", onPageHide);
       savePreference();
       window.cancelAnimationFrame(fadeFrame.current);
+      if (skipTimer.current !== null) window.clearTimeout(skipTimer.current);
       audio?.pause();
       if (audioGraphRef.current?.context.state !== "closed") {
         void audioGraphRef.current?.context.close();
@@ -398,13 +410,32 @@ export default function AmbientMusicProvider({
     };
   }, [savePreference]);
 
-  const handleLoadedMetadata = () => restorePosition();
+  const syncProgress = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setProgress({
+      time: Number.isFinite(audio.currentTime) ? audio.currentTime : 0,
+      duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+    });
+  };
+  const handleLoadedMetadata = () => {
+    restorePosition();
+    syncProgress();
+  };
   const handleTimeUpdate = () => {
     const audio = audioRef.current;
     if (!audio) return;
+    syncProgress();
 
     // Ease the level down over the last couple of seconds so the track ends softly.
-    if (tracks && tracks.length > 1 && !audio.paused && !fadingOut.current && Number.isFinite(audio.duration)) {
+    if (
+      tracks &&
+      tracks.length > 1 &&
+      loopMode === "queue" &&
+      !audio.paused &&
+      !fadingOut.current &&
+      Number.isFinite(audio.duration)
+    ) {
       const remaining = audio.duration - audio.currentTime;
       if (remaining > 0.25 && remaining <= FADE_OUT_SECONDS) {
         fadingOut.current = true;
@@ -418,9 +449,46 @@ export default function AmbientMusicProvider({
   };
 
   const advanceQueue = () => {
-    if (!tracks || tracks.length < 2 || pendingAdvance.current) return;
+    if (!tracks || tracks.length < 2 || pendingAdvance.current || skipTimer.current !== null) return;
     pendingAdvance.current = true;
     setTrackIndex((index) => (index + 1) % tracks.length);
+  };
+
+  // Jumps to a position in the current track. Any fade-out already under way is cancelled so the
+  // track does not stay quiet after seeking back from the end.
+  const seekTo = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    audio.currentTime = Math.min(Math.max(0, seconds), Math.max(0, audio.duration - 0.5));
+    fadingOut.current = false;
+    if (!audio.paused) fadeGain(1, 0.25);
+    syncProgress();
+  };
+
+  // Moves to the next track through the normal queue path. While playing, the current track is
+  // faded out first; while muted the next track is simply queued up and stays paused.
+  const skipToNext = () => {
+    if (!tracks || tracks.length < 2 || pendingAdvance.current || skipTimer.current !== null) return;
+    const advance = () => {
+      skipTimer.current = null;
+      if (pendingAdvance.current) return;
+      pendingAdvance.current = true;
+      setTrackIndex((index) => (index + 1) % tracks.length);
+    };
+    const audio = audioRef.current;
+    if (audio && !audio.paused) {
+      fadeGain(0, SKIP_FADE_SECONDS);
+      skipTimer.current = window.setTimeout(advance, SKIP_FADE_SECONDS * 1000);
+    } else {
+      advance();
+    }
+  };
+
+  const toggleLoopMode = () => {
+    setLoopMode((mode) => (mode === "queue" ? "track" : "queue"));
+    // The end-of-track fade is only used when the queue moves on, so undo one that has begun.
+    fadingOut.current = false;
+    if (audioRef.current && !audioRef.current.paused) fadeGain(1, 0.3);
   };
 
   const handleEnded = () => advanceQueue();
@@ -465,7 +533,10 @@ export default function AmbientMusicProvider({
       <audio
         ref={audioRef}
         src={queueReady ? currentTrack?.src : undefined}
-        loop={!tracks || tracks.length < 2}
+        loop={loopMode === "track" || !tracks || tracks.length < 2}
+        onLoadStart={syncProgress}
+        onDurationChange={syncProgress}
+        onSeeked={syncProgress}
         preload="metadata"
         aria-hidden="true"
         onLoadedMetadata={handleLoadedMetadata}
@@ -485,29 +556,100 @@ export default function AmbientMusicProvider({
         <div
           className="pf-now-playing"
           role="group"
-          aria-label="Now playing"
+          aria-label="Music player"
           data-playing={isPlaying}
+          data-loop={loopMode}
+          onKeyDown={(event) => {
+            // Keep the seek slider's arrow keys from also stepping the portrait gallery.
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") event.stopPropagation();
+          }}
         >
-          <span className="pf-np-wave" aria-hidden="true">
-            {WAVE_BARS.map((bar, i) => (
-              <span
-                key={i}
-                style={
-                  {
-                    "--rest": bar.rest,
-                    "--lo": bar.lo,
-                    "--hi": bar.hi,
-                    "--dur": `${bar.dur}s`,
-                    "--delay": `${bar.delay}s`,
-                  } as CSSProperties
+          <div className="pf-np-main">
+            <span className="pf-np-wave" aria-hidden="true">
+              {WAVE_BARS.map((bar, i) => (
+                <span
+                  key={i}
+                  style={
+                    {
+                      "--rest": bar.rest,
+                      "--lo": bar.lo,
+                      "--hi": bar.hi,
+                      "--dur": `${bar.dur}s`,
+                      "--delay": `${bar.delay}s`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </span>
+            <span className="pf-np-text" key={currentTrack.src}>
+              <span className="pf-np-title">{currentTrack.title}</span>
+              {currentTrack.composer && <span className="pf-np-composer">{currentTrack.composer}</span>}
+            </span>
+            <span className="pf-np-controls">
+              <button
+                type="button"
+                className="pf-np-button"
+                aria-label="Skip to next track"
+                title="Next track"
+                disabled={!tracks || tracks.length < 2}
+                onClick={skipToNext}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <polygon points="6 4 16 12 6 20 6 4" fill="currentColor" />
+                  <line x1="19" y1="5" x2="19" y2="19" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="pf-np-button pf-np-loop"
+                aria-label={
+                  loopMode === "queue"
+                    ? "Loop all tracks. Switch to repeating this track"
+                    : "Repeating this track. Switch to looping all tracks"
                 }
-              />
-            ))}
-          </span>
-          <span className="pf-np-text" key={currentTrack.src}>
-            <span className="pf-np-title">{currentTrack.title}</span>
-            {currentTrack.composer && <span className="pf-np-composer">{currentTrack.composer}</span>}
-          </span>
+                aria-pressed={loopMode === "track"}
+                title={loopMode === "queue" ? "Loop all tracks" : "Repeat this track"}
+                onClick={toggleLoopMode}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m17 2 4 4-4 4" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <path d="m7 22-4-4 4-4" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                  {loopMode === "track" && <path d="M11 10h1v4" />}
+                </svg>
+              </button>
+            </span>
+          </div>
+          <div className="pf-np-progress">
+            <span className="pf-np-time" aria-hidden="true">
+              {formatClock(progress.time)}
+            </span>
+            <input
+              className="pf-np-seek"
+              type="range"
+              aria-label="Seek within track"
+              aria-valuetext={
+                progress.duration > 0
+                  ? `${formatClock(progress.time)} of ${formatClock(progress.duration)}`
+                  : "Loading"
+              }
+              min={0}
+              max={Math.max(0, Math.floor(progress.duration))}
+              step={1}
+              value={Math.min(Math.floor(progress.time), Math.max(0, Math.floor(progress.duration)))}
+              disabled={progress.duration <= 0}
+              style={
+                { "--p": `${progress.duration > 0 ? Math.min(100, (progress.time / progress.duration) * 100) : 0}%` } as CSSProperties
+              }
+              onChange={(event) => seekTo(Number(event.target.value))}
+            />
+            <span className="pf-np-time" aria-hidden="true">
+              {progress.duration > 0
+                ? `-${formatClock(Math.max(0, Math.round(progress.duration) - Math.floor(progress.time)))}`
+                : "-:--"}
+            </span>
+          </div>
           <span className="sr-only">{isPlaying ? "Playing" : "Paused"}</span>
         </div>
       )}

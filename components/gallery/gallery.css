@@ -141,8 +141,31 @@
 
 .pf-settings-button{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 16px);right:max(16px,env(safe-area-inset-right,0px));display:grid;width:42px;height:42px;padding:0;place-items:center;border:0;border-radius:0;background:transparent;cursor:pointer}
 .pf-settings-icon{display:block;width:22px;height:22px;filter:brightness(0) invert(1);opacity:.82;transition:opacity 240ms ease,transform 240ms ease}
-.pf-now-playing{--np-ink:#1d2027;--np-muted:#4b453c;--np-lapis:#2b4670;--np-rest:rgba(48,44,38,.45);position:fixed;z-index:39;top:calc(env(safe-area-inset-top,0px) + 16px);left:max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;max-width:min(260px,calc(100vw - 96px));padding:8px 16px 8px 13px;border:1px solid rgba(34,28,22,.36);border-radius:10px;background-color:#cdbb97;background-image:radial-gradient(ellipse at 50% 50%,transparent 42%,rgba(26,19,13,.34) 100%),linear-gradient(160deg,rgba(128,106,78,.16),rgba(62,48,36,.3)),url("../../assets/weathered-paper.png");background-position:center;background-repeat:no-repeat;background-size:100% 100%,100% 100%,cover;box-shadow:0 5px 16px rgba(0,0,0,.3);color:var(--np-ink);pointer-events:none;transition:opacity 400ms ease,visibility 400ms;animation:pf-np-in 1100ms cubic-bezier(.22,.7,.2,1) 450ms backwards}
-.pf-now-playing[data-playing="false"]{opacity:.88}
+.pf-now-playing{--np-ink:#171a21;--np-muted:#3f3b35;--np-lapis:#243f69;--np-rest:rgba(48,44,38,.45);position:fixed;z-index:39;top:calc(env(safe-area-inset-top,0px) + 16px);left:max(16px,env(safe-area-inset-left,0px));box-sizing:border-box;display:grid;gap:8px;width:min(300px,calc(100vw - 96px));padding:10px 12px 9px 13px;border:1px solid rgba(34,28,22,.36);border-radius:10px;background-color:#d3c4a3;background-image:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(26,19,13,.26) 100%),linear-gradient(160deg,rgba(128,106,78,.12),rgba(62,48,36,.22)),url("../../assets/weathered-paper.png");background-position:center;background-repeat:no-repeat;background-size:100% 100%,100% 100%,cover;box-shadow:0 5px 16px rgba(0,0,0,.3);color:var(--np-ink);transition:opacity 400ms ease,visibility 400ms;animation:pf-np-in 1100ms cubic-bezier(.22,.7,.2,1) 450ms backwards}
+.pf-np-main{display:flex;align-items:center;gap:12px;min-width:0}
+.pf-np-controls{display:flex;flex:0 0 auto;gap:2px;margin-right:-4px}
+.pf-np-button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--np-ink);cursor:pointer;transition:background-color 160ms ease,color 160ms ease}
+.pf-np-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pf-np-button:hover:not(:disabled){background:rgba(23,26,33,.1)}
+.pf-np-button:focus-visible{outline:2px solid var(--np-lapis);outline-offset:1px}
+.pf-np-button:disabled{opacity:.4;cursor:default}
+.pf-now-playing[data-loop="track"] .pf-np-loop{background:var(--np-lapis);color:#f3efe3}
+.pf-now-playing[data-loop="track"] .pf-np-loop:hover:not(:disabled){background:#1b3257}
+.pf-np-progress{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px}
+.pf-np-time{min-width:3.1ch;color:var(--np-muted);font-family:var(--font-geist-sans),system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11.5px;font-variant-numeric:tabular-nums;font-weight:500;line-height:1}
+.pf-np-time:last-child{text-align:right}
+.pf-np-seek{--p:0%;-webkit-appearance:none;appearance:none;width:100%;height:18px;margin:0;background:transparent;cursor:pointer}
+.pf-np-seek::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(to right,var(--np-lapis) var(--p),rgba(23,26,33,.26) var(--p))}
+.pf-np-seek::-moz-range-track{height:4px;border-radius:4px;background:rgba(23,26,33,.26)}
+.pf-np-seek::-moz-range-progress{height:4px;border-radius:4px;background:var(--np-lapis)}
+.pf-np-seek::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:12px;height:12px;margin-top:-4px;border:2px solid #efe8d4;border-radius:50%;background:var(--np-lapis);box-shadow:0 0 0 1px rgba(23,26,33,.35);opacity:0;transform:scale(.6);transition:opacity 140ms ease,transform 140ms ease}
+.pf-np-seek::-moz-range-thumb{box-sizing:border-box;width:12px;height:12px;border:2px solid #efe8d4;border-radius:50%;background:var(--np-lapis);opacity:0;transform:scale(.6);transition:opacity 140ms ease,transform 140ms ease}
+.pf-np-seek:hover::-webkit-slider-thumb,.pf-np-seek:focus-visible::-webkit-slider-thumb{opacity:1;transform:scale(1)}
+.pf-np-seek:hover::-moz-range-thumb,.pf-np-seek:focus-visible::-moz-range-thumb{opacity:1;transform:scale(1)}
+.pf-np-seek:focus-visible{outline:2px solid var(--np-lapis);outline-offset:2px;border-radius:4px}
+.pf-np-seek:disabled{cursor:default;opacity:.5}
+@media(hover:none){.pf-np-seek::-webkit-slider-thumb{opacity:1;transform:scale(1)}.pf-np-seek::-moz-range-thumb{opacity:1;transform:scale(1)}}
+@media(pointer:coarse){.pf-np-seek{height:28px}}
 .pf-np-wave{display:flex;flex:0 0 auto;align-items:center;gap:3px;height:22px}
 .pf-np-wave span{display:block;width:3px;height:100%;border-radius:2px;background:var(--np-rest);transform:scaleY(var(--rest));transition:transform 500ms ease,background-color 400ms ease}
 .pf-now-playing[data-playing="true"] .pf-np-wave span{background:var(--np-lapis);animation:pf-np-wave var(--dur) ease-in-out var(--delay) infinite alternate}
@@ -255,7 +278,9 @@ body:has(.pf-stage[data-reduced-motion="true"]) .pf-np-wave span{animation:none}
   .pf-document-index button[aria-current="page"]::after{content:"";position:absolute;right:8px;bottom:4px;left:8px;height:1px;background:var(--burnt-orange)}
   .pf-back{top:calc(env(safe-area-inset-top,0px) + 10px)}
   .pf-settings-button{top:calc(env(safe-area-inset-top,0px) + 10px);right:10px}
-  .pf-now-playing{top:calc(env(safe-area-inset-top,0px) + 10px);left:max(10px,env(safe-area-inset-left,0px));gap:10px;padding:7px 13px 7px 11px}
+  .pf-now-playing{top:calc(env(safe-area-inset-top,0px) + 10px);left:max(10px,env(safe-area-inset-left,0px));gap:6px;padding:8px 10px 7px 11px}
+  .pf-np-main{gap:10px}
+  .pf-np-button{width:36px;height:36px}
   .pf-np-title{font-size:14px}
   .pf-guild-ledger{right:max(10px,env(safe-area-inset-right,0px));bottom:var(--book-bottom);width:var(--book-width)}
   .pf-book-swipe-cue{display:flex}
