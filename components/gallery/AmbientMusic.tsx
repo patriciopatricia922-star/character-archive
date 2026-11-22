@@ -124,6 +124,7 @@ export default function AmbientMusicProvider({
   const queueInitialized = useRef(false);
   const pendingAdvance = useRef(false);
   const fadingOut = useRef(false);
+  const failedSkips = useRef(0);
   const fadeFrame = useRef(0);
   const [prefsRead, setPrefsRead] = useState(false);
   const [tracks, setTracks] = useState<Track[] | null>(null);
@@ -416,10 +417,25 @@ export default function AmbientMusicProvider({
     savePreference();
   };
 
-  const handleEnded = () => {
+  const advanceQueue = () => {
     if (!tracks || tracks.length < 2 || pendingAdvance.current) return;
     pendingAdvance.current = true;
     setTrackIndex((index) => (index + 1) % tracks.length);
+  };
+
+  const handleEnded = () => advanceQueue();
+
+  // A file that cannot be loaded or decoded is skipped so it cannot stall the queue. If every
+  // track in a row fails, stop skipping instead of cycling forever.
+  const handleError = () => {
+    if (!tracks || tracks.length < 2) return;
+    failedSkips.current += 1;
+    if (failedSkips.current >= tracks.length) {
+      console.warn("None of the soundtrack files could be played.");
+      return;
+    }
+    console.warn("Skipping a soundtrack that could not be played.");
+    advanceQueue();
   };
 
   const togglePlayback = useCallback(() => {
@@ -459,6 +475,10 @@ export default function AmbientMusicProvider({
           if (!audioRef.current?.ended) setIsPlaying(false);
         }}
         onEnded={handleEnded}
+        onError={handleError}
+        onPlaying={() => {
+          failedSkips.current = 0;
+        }}
         onTimeUpdate={handleTimeUpdate}
       />
       {active && currentTrack && (
