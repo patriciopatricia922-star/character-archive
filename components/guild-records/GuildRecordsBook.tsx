@@ -53,6 +53,8 @@ const ledgerSerif = EB_Garamond({
 
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
+const PAGE_FLIP_SOUND_SRC = "/effects/page-flip.mp3";
+const PAGE_FLIP_VOLUME = 0.5;
 // Must match --gl-book-open-duration / --gl-book-close-duration in GuildLedger.css.
 // The cover's transitionend normally completes the transition; the timeout is only
 // a fallback, so it carries a small margin and can never cut the swing short.
@@ -915,6 +917,7 @@ export default function GuildRecordsBook({
   const turnSequence = useRef(0);
   const previousBookState = useRef<BookState>("closed");
   const autoOpenHandled = useRef<string | null>(null);
+  const pageFlipAudio = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const motionPreference = window.matchMedia(
@@ -967,6 +970,24 @@ export default function GuildRecordsBook({
     setBookState((current) => (current === from ? next : current));
   }, []);
 
+  // Separate from the ambient music element, so music and its controls are untouched.
+  // Restarting the same element keeps rapid turns from stacking into overlapping playback.
+  const playPageFlip = useCallback(() => {
+    try {
+      if (!pageFlipAudio.current) {
+        const audio = new Audio(PAGE_FLIP_SOUND_SRC);
+        audio.volume = PAGE_FLIP_VOLUME;
+        audio.preload = "auto";
+        pageFlipAudio.current = audio;
+      }
+      const audio = pageFlipAudio.current;
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
+    } catch {
+      // Sound is decorative; never let it break page turning.
+    }
+  }, []);
+
   const finishPageTurn = useCallback(() => {
     const activeTurn = turnRef.current;
     if (!activeTurn) return;
@@ -1006,6 +1027,8 @@ export default function GuildRecordsBook({
       if (pageTurnFrame.current !== null) {
         window.cancelAnimationFrame(pageTurnFrame.current);
       }
+      pageFlipAudio.current?.pause();
+      pageFlipAudio.current = null;
     },
     [setBookMuffled],
   );
@@ -1096,6 +1119,7 @@ export default function GuildRecordsBook({
       }
 
       pageTurnFrame.current = window.requestAnimationFrame(() => {
+        playPageFlip();
         setTurn((current) =>
           current?.id === nextTurn.id
             ? { ...current, animating: true }
@@ -1111,6 +1135,7 @@ export default function GuildRecordsBook({
       activeSpreadIndex,
       bookState,
       finishPageTurn,
+      playPageFlip,
       reducedMotion,
       spreads.length,
     ],
