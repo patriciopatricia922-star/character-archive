@@ -54,7 +54,7 @@ const ledgerSerif = EB_Garamond({
 const SETTINGS_PREFERENCE_KEY = "character-archive-exhibition-settings";
 const PAGE_TURN_DURATION = 820;
 const PAGE_FLIP_SOUND_SRC = "../effects/page-flip.mp3";
-const PAGE_FLIP_VOLUME = 0.5;
+const PAGE_FLIP_VOLUME = 0.9;
 // The file opens with ~1s of silence; start playback at the audible part so the
 // sound lands with the leaf (the turn itself only lasts PAGE_TURN_DURATION).
 const PAGE_FLIP_START_OFFSET = 1;
