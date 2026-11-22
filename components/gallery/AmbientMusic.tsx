@@ -11,6 +11,7 @@ import {
 } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { buildTrackList } from "../../data/musicTracks";
 
 type AmbientMusicControls = {
   setBookMuffled: (muffled: boolean) => void;
@@ -41,6 +42,7 @@ type AudioGraph = {
 };
 
 const MUSIC_PREFERENCE_KEY = "character-archive-ambient-music";
+const MUSIC_MANIFEST_URL = "/music/manifest.json";
 const MUSIC_INDEX_URL = "/api/music";
 // Used only if the track list cannot be loaded, so the archive never goes silent.
 const FALLBACK_TRACK: Track = {
@@ -94,6 +96,32 @@ function isTrack(value: unknown): value is Track {
   );
 }
 
+// Reads the track list: first the static manifest written at build time (no server code involved),
+// then the /api/music route as a backup.
+async function loadTrackList(): Promise<Track[]> {
+  try {
+    const response = await fetch(MUSIC_MANIFEST_URL, { cache: "no-cache" });
+    if (response.ok) {
+      const data: unknown = await response.json();
+      const files =
+        typeof data === "object" && data !== null && "files" in data && Array.isArray(data.files)
+          ? data.files.filter((file): file is string => typeof file === "string")
+          : [];
+      const list = buildTrackList(files);
+      if (list.length > 0) return list;
+    }
+  } catch (error) {
+    console.warn(`Could not read ${MUSIC_MANIFEST_URL}; trying ${MUSIC_INDEX_URL}.`, error);
+  }
+
+  const response = await fetch(MUSIC_INDEX_URL);
+  if (!response.ok) throw new Error(`${MUSIC_INDEX_URL} responded with ${response.status}.`);
+  const data: unknown = await response.json();
+  const list = Array.isArray(data) ? data.filter(isTrack) : [];
+  if (list.length === 0) throw new Error(`${MUSIC_INDEX_URL} returned no playable tracks.`);
+  return list;
+}
+
 function formatClock(totalSeconds: number) {
   const seconds = Math.max(0, Math.floor(totalSeconds));
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -137,6 +165,7 @@ export default function AmbientMusicProvider({
   const fadeFrame = useRef(0);
   const [prefsRead, setPrefsRead] = useState(false);
   const [tracks, setTracks] = useState<Track[] | null>(null);
+  const [listFailed, setListFailed] = useState(false);
   const [trackIndex, setTrackIndex] = useState(0);
   const [queueReady, setQueueReady] = useState(false);
   const [progress, setProgress] = useState({ time: 0, duration: 0 });
@@ -314,19 +343,21 @@ export default function AmbientMusicProvider({
 
   useEffect(() => {
     let cancelled = false;
-    fetch(MUSIC_INDEX_URL)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Music index responded with ${response.status}.`);
-        return response.json() as Promise<unknown>;
-      })
-      .then((data) => {
-        const list = Array.isArray(data) ? data.filter(isTrack) : [];
-        if (list.length === 0) throw new Error("The music folder has no playable tracks.");
+    loadTrackList()
+      .then((list) => {
+        console.info(`Music queue: ${list.length} track(s) - ${list.map((track) => track.title).join(", ")}`);
         if (!cancelled) setTracks(list);
       })
       .catch((error) => {
-        console.warn("Could not load the soundtrack list; using the default track.", error);
-        if (!cancelled) setTracks([FALLBACK_TRACK]);
+        console.error(
+          "The soundtrack list could not be loaded, so only the default track will play and the queue cannot advance. " +
+            "Check that /music/manifest.json (or /api/music) is reachable.",
+          error,
+        );
+        if (!cancelled) {
+          setListFailed(true);
+          setTracks([FALLBACK_TRACK]);
+        }
       });
     return () => {
       cancelled = true;
@@ -491,7 +522,10 @@ export default function AmbientMusicProvider({
     if (audioRef.current && !audioRef.current.paused) fadeGain(1, 0.3);
   };
 
-  const handleEnded = () => advanceQueue();
+  // `ended` must be true: a stale event from a track that has already been replaced is ignored.
+  const handleEnded = () => {
+    if (audioRef.current?.ended) advanceQueue();
+  };
 
   // A file that cannot be loaded or decoded is skipped so it cannot stall the queue. If every
   // track in a row fails, stop skipping instead of cycling forever.
@@ -502,7 +536,7 @@ export default function AmbientMusicProvider({
       console.warn("None of the soundtrack files could be played.");
       return;
     }
-    console.warn("Skipping a soundtrack that could not be played.");
+    console.warn("Skipping a soundtrack that could not be played:", audioRef.current?.currentSrc);
     advanceQueue();
   };
 
@@ -543,7 +577,8 @@ export default function AmbientMusicProvider({
         onPlay={() => setIsPlaying(true)}
         onPause={() => {
           // A natural end fires "pause" just before "ended"; the queue is about to continue.
-          if (!audioRef.current?.ended) setIsPlaying(false);
+          if (audioRef.current?.ended) handleEnded();
+          else setIsPlaying(false);
         }}
         onEnded={handleEnded}
         onError={handleError}
@@ -583,14 +618,26 @@ export default function AmbientMusicProvider({
             </span>
             <span className="pf-np-text" key={currentTrack.src}>
               <span className="pf-np-title">{currentTrack.title}</span>
-              {currentTrack.composer && <span className="pf-np-composer">{currentTrack.composer}</span>}
+              {(currentTrack.composer || (tracks && tracks.length > 1)) && (
+                <span className="pf-np-composer">
+                  {[currentTrack.composer, tracks && tracks.length > 1 ? `${trackIndex + 1}/${tracks.length}` : null]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              )}
             </span>
             <span className="pf-np-controls">
               <button
                 type="button"
                 className="pf-np-button"
                 aria-label="Skip to next track"
-                title="Next track"
+                title={
+                  listFailed
+                    ? "The track list could not be loaded, so there is no next track"
+                    : !tracks || tracks.length < 2
+                      ? "Only one track is available"
+                      : "Next track"
+                }
                 disabled={!tracks || tracks.length < 2}
                 onClick={skipToNext}
               >
