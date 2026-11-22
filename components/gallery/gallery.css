@@ -40,7 +40,16 @@
 .pf-wall-cell[data-lit="true"]{opacity:.55}
 .pf-wall-cell[data-extra="true"]{display:none}
 @media(min-width:768px){.pf-wall-cell[data-extra="true"]{display:block}}
-.pf-art{display:block;width:100%;height:100%;object-fit:cover}
+.pf-art{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-user-drag:none;
+  -webkit-touch-callout:none
+}
 .pf-stage[data-zoomed="true"] .pf-wall{opacity:.1}
 .pf-stage[data-zoomed="false"] .pf-wall{opacity:0;pointer-events:none}
 
