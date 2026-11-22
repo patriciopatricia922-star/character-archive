@@ -7,7 +7,11 @@ import Image from "next/image";
 import cogwheel from "../../assets/cogwheel.svg";
 import photoFrame from "../../assets/photo-frame.png";
 import scrollPaper from "../../assets/scroll-paper.png";
-import { portraits as defaultPortraits, type PortraitData } from "../../data/portraits";
+import {
+  portraits as defaultPortraits,
+  PRIMARY_PORTRAIT_ID,
+  type PortraitData,
+} from "../../data/portraits";
 import { GUILD_RECORDS_TRANSITION_EVENT } from "../SceneTransitionOverlay";
 import ClosedLedgerBook from "../guild-records/ClosedLedgerBook";
 import { useAmbientMusic } from "./AmbientMusic";
@@ -93,7 +97,12 @@ const DUST_PARTICLES = [
 
 export default function Gallery({ portraits = defaultPortraits, onSelect }: Props) {
   const n = portraits.length;
-  const [index, setIndex] = useState(Math.floor(n / 2));
+  const [index, setIndex] = useState(() => {
+    const primaryIndex = portraits.findIndex(
+      (portrait) => portrait.id === PRIMARY_PORTRAIT_ID || portrait.primary,
+    );
+    return primaryIndex >= 0 ? primaryIndex : Math.floor(n / 2);
+  });
   const [hover, setHover] = useState<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [settings, setSettings] = useState<ExhibitionSettings>(DEFAULT_SETTINGS);
