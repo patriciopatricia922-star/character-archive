@@ -616,8 +616,8 @@ export default function Gallery({ portraits = defaultPortraits, onSelect }: Prop
                   src={photoFrame}
                   alt=""
                   aria-hidden="true"
-                  width={1351}
-                  height={1600}
+                  width={photoFrame.width}
+                  height={photoFrame.height}
                   unoptimized
                   draggable={false}
                 />

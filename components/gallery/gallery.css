@@ -11,12 +11,20 @@
   --py:0px;
   --ps:1.35;
   --pr:-.8deg;
-  --w:clamp(150px,min(22vw,34vh),280px);
-  --step:min(calc(var(--w)*.62),calc((100vw - var(--w) - 48px)/6));
+  /* Frame artwork geometry. photo-frame.png is 457x545 with transparent padding, so the portrait box is cropped
+     to the frame's visible edge (x47-410, y43-502) and --w is the VISIBLE frame width. The art fills the frame's
+     inner opening (x68-389, y64-480 - tucked ~2px under the inner lip so no hairline gap shows). If the frame
+     asset changes, re-measure these tokens; nothing else needs to change. */
+  --frame-ratio:363/459;
+  --frame-hr:1.26446;
+  --art-top:4.575%;--art-left:5.785%;--art-w:88.430%;--art-h:90.632%;
+  --frame-img-w:125.895%;--frame-img-h:118.736%;--frame-img-l:-12.948%;--frame-img-t:-9.368%;
+  --w:clamp(150px,min(26vw,29svh),480px);
+  --step:min(calc(var(--w)*.9),calc((50vw - 24px - var(--w)*.26)/3));
   --book-width:clamp(80px,9vw,128px);
   --book-height:calc(var(--book-width)*1.39);
   --book-bottom:calc(env(safe-area-inset-bottom,0px) + clamp(28px,4svh,44px));
-  --portrait-height:calc(var(--w)*1.184);
+  --portrait-height:calc(var(--w)*var(--frame-hr));
   --portrait-half:calc(var(--portrait-height)*.5);
   --gallery-gap:clamp(24px,4svh,60px);
   --ease:cubic-bezier(.22,.7,.2,1);
@@ -95,11 +103,11 @@
 .pf-track{position:absolute;inset:0;display:grid;place-items:center}
 .pf-stage[data-zoomed="false"] .pf-track{top:calc(50svh - var(--portrait-half) - clamp(0px,8svh,72px));right:0;bottom:auto;left:0;height:var(--portrait-height)}
 .pf-stage[data-zoomed="true"] .pf-track{top:0;bottom:0;height:auto}
-.pf-portrait{grid-area:1/1;position:relative;width:var(--w);aspect-ratio:1351/1600;padding:0;border:0;background:transparent;cursor:pointer;overflow:hidden;z-index:calc(10 - var(--a));transform:translate3d(calc(var(--d)*var(--step)),0,0) scale(max(.42,calc(1 - var(--a)*.16)));transition:transform 750ms var(--ease),opacity 500ms ease;will-change:transform}
-.pf-portrait>.pf-art{position:absolute;top:17.125%;left:19.91%;width:60.18%;height:65.75%;object-fit:cover}
+.pf-portrait{grid-area:1/1;position:relative;width:var(--w);aspect-ratio:var(--frame-ratio);padding:0;border:0;background:transparent;cursor:pointer;overflow:hidden;z-index:calc(10 - var(--a));transform:translate3d(calc(var(--d)*var(--step)),0,0) scale(max(.42,calc(1 - var(--a)*.16)));transition:transform 750ms var(--ease),opacity 500ms ease;will-change:transform}
+.pf-portrait>.pf-art{position:absolute;top:var(--art-top);left:var(--art-left);width:var(--art-w);height:var(--art-h);object-fit:cover;object-position:50% 28%}
 .pf-portrait[data-hidden="true"]{opacity:0;pointer-events:none}
-.pf-shade{position:absolute;top:17.125%;left:19.91%;width:60.18%;height:65.75%;background:#050403;opacity:var(--dim);transition:opacity 600ms ease;pointer-events:none}
-.pf-photo-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2}
+.pf-shade{position:absolute;top:var(--art-top);left:var(--art-left);width:var(--art-w);height:var(--art-h);background:#050403;opacity:var(--dim);transition:opacity 600ms ease;pointer-events:none}
+.pf-photo-frame{position:absolute;top:var(--frame-img-t);left:var(--frame-img-l);width:var(--frame-img-w);height:var(--frame-img-h);max-width:none;object-fit:fill;pointer-events:none;z-index:2}
 .pf-stage[data-zoomed="true"] .pf-portrait{opacity:0;pointer-events:none;transform:translate3d(calc(var(--d)*var(--step)*1.8),0,0) scale(max(.42,calc(1 - var(--a)*.16)))}
 .pf-stage[data-zoomed="true"]{cursor:default}
 .pf-stage[data-zoomed="true"] .pf-portrait[data-zoom="true"]{opacity:1;pointer-events:auto;box-shadow:0 18px 38px rgba(0,0,0,.58);transform:translate3d(var(--px),var(--py),0) rotate(var(--pr)) scale(var(--ps));transition:transform 850ms var(--ease),opacity 500ms ease}
@@ -254,14 +262,14 @@ body:has(.pf-stage[data-reduced-motion="true"]) .pf-np-wave span{animation:none}
 .pf-stage[data-reduced-motion="true"] .pf-light{animation:none!important}
 
 @media(max-width:639px),(max-width:899px) and (max-aspect-ratio:6/5){
-  .pf-stage{--H:100svh;--px:0px;--py:calc((var(--zoom-top) + var(--zoom-bottom))/2 - 50svh);--ps:1;--pr:0deg;--w:clamp(96px,38vw,168px);--step:calc(var(--w)*.82);--book-width:clamp(80px,9vw,122px);--book-height:calc(var(--book-width)*1.39);--nav-clearance:clamp(14px,3svh,26px);--book-bottom:calc(env(safe-area-inset-bottom,0px) + var(--nav-clearance) + clamp(24px,4svh,40px));--portrait-height:clamp(114px,45vw,199px);--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(18px,4svh,32px);height:100svh;min-height:100svh;
+  .pf-stage{--H:100svh;--px:0px;--py:calc((var(--zoom-top) + var(--zoom-bottom))/2 - 50svh);--ps:1;--pr:0deg;--w:clamp(120px,min(62vw,34svh),440px);--step:min(calc(var(--w)*1.075),calc(50vw - 10px - var(--w)*.325));--book-width:clamp(80px,9vw,122px);--book-height:calc(var(--book-width)*1.39);--nav-clearance:clamp(14px,3svh,26px);--book-bottom:calc(env(safe-area-inset-bottom,0px) + var(--nav-clearance) + clamp(24px,4svh,40px));--portrait-height:calc(var(--w)*var(--frame-hr));--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(18px,4svh,32px);height:100svh;min-height:100svh;
     /* Zoomed portrait: sized to the room between the top controls and the document stack,
-       so the frame fills that band instead of using a fixed scale. Height is w * 1600/1351. */
+       so the frame fills that band instead of using a fixed scale. Height is w * 459/363. */
     --dossier-h:min(53svh,480px);
     --zoom-top:calc(env(safe-area-inset-top,0px) + 66px);
     --zoom-bottom:calc(100svh - env(safe-area-inset-bottom,0px) - 58px - var(--dossier-h) - 18px);
     --zoom-h:calc(var(--zoom-bottom) - var(--zoom-top));
-    --zoom-w:max(88px,min(calc(var(--zoom-h)/1.1843),74vw,420px))}
+    --zoom-w:max(88px,min(calc(var(--zoom-h)/var(--frame-hr)),74vw,420px))}
   .pf-stage[data-zoomed="false"] .pf-track{top:calc(50svh - var(--portrait-half) - clamp(0px,8svh,64px) - var(--nav-clearance)*.5);height:var(--portrait-height)}
   .pf-stage[data-zoomed="false"] .pf-portrait{transform:translate3d(calc(var(--d)*var(--step)),0,0) scale(max(.45,calc(1 - var(--a)*.35)))}
   .pf-stage[data-zoomed="false"] .pf-portrait[data-mobile-hidden="false"]{visibility:visible;transition:transform 420ms var(--ease),width 420ms var(--ease),opacity 240ms ease}
@@ -307,7 +315,7 @@ body:has(.pf-stage[data-reduced-motion="true"]) .pf-np-wave span{animation:none}
 }
 
 @media(min-width:640px) and (max-width:899px) and (min-aspect-ratio:6/5){
-  .pf-stage{--px:-24vw;--ps:1.05;--w:clamp(150px,22vw,200px);min-height:100svh}
+  .pf-stage{--px:-24vw;--ps:1.05;min-height:100svh}
   .pf-dossier{right:24px;width:clamp(360px,45vw,460px);height:min(78svh,520px)}
   .pf-paper-content{padding:28px 34px}
 }
@@ -318,11 +326,11 @@ body:has(.pf-stage[data-reduced-motion="true"]) .pf-np-wave span{animation:none}
 }
 
 @media(min-width:900px) and (max-height:560px){
-  .pf-stage{--w:clamp(110px,min(18vw,29vh),200px);--book-width:clamp(100px,min(12vw,20vh),180px);--book-height:calc(var(--book-width)*1.39);--gallery-gap:clamp(14px,3vh,24px)}
+  .pf-stage{--w:clamp(110px,min(26vw,29svh),480px);--book-width:clamp(100px,min(12vw,20vh),180px);--book-height:calc(var(--book-width)*1.39);--gallery-gap:clamp(14px,3vh,24px)}
 }
 
 @media(max-width:1199px) and (max-height:520px) and (orientation:landscape){
-  .pf-stage{--w:clamp(80px,30svh,120px);--step:calc(var(--w)*.82);--book-width:clamp(68px,18svh,94px);--book-height:calc(var(--book-width)*1.39);--nav-clearance:clamp(8px,3svh,14px);--book-bottom:calc(env(safe-area-inset-bottom,0px) + var(--nav-clearance) + clamp(24px,8svh,36px));--portrait-height:calc(var(--w)*1.184);--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(10px,3svh,16px)}
+  .pf-stage{--w:clamp(80px,38svh,170px);--step:min(calc(var(--w)*1.05),calc((50vw - 12px - var(--w)*.225)/3));--book-width:clamp(68px,18svh,94px);--book-height:calc(var(--book-width)*1.39);--nav-clearance:clamp(8px,3svh,14px);--book-bottom:calc(env(safe-area-inset-bottom,0px) + var(--nav-clearance) + clamp(24px,8svh,36px));--portrait-height:calc(var(--w)*var(--frame-hr));--portrait-half:calc(var(--portrait-height)*.5);--gallery-gap:clamp(10px,3svh,16px)}
   .pf-stage[data-zoomed="false"] .pf-portrait{transform:translate3d(calc(var(--d)*var(--step)),0,0) scale(max(.45,calc(1 - var(--a)*.35)))}
   .pf-guild-ledger{bottom:var(--book-bottom);width:var(--book-width)}
 }
